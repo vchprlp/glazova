@@ -626,6 +626,17 @@ a { color: inherit; }
 .me-chips .up { background: #2A2A2E; color: #D9D4CF; }
 .me-tip { font-size: 14px; font-weight: 600; color: #FFB27F; }
 .me-list { margin: 0; padding-left: 18px; color: #D9D4CF; font-size: 14px; display: grid; gap: 4px; }
+.me-grow { background: #202024; border-radius: 14px; padding: 12px 14px; display: grid; gap: 4px; }
+.me-gh { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.me-gh span { font-size: 13px; font-weight: 700; color: #7EE2A8; }
+.me-table { display: grid; gap: 6px; overflow-x: auto; }
+.me-tr { display: grid; grid-template-columns: 2fr .7fr 1fr .8fr 1fr .9fr; gap: 10px; align-items: center; background: #202024; border-radius: 12px; padding: 10px 14px; font-size: 13.5px; min-width: 640px; }
+.me-tr em { display: block; font-style: normal; font-size: 12px; color: #8E8984; }
+.me-th { background: none; color: #8E8984; font-size: 12px; padding: 0 14px; }
+.me-more { display: none; }
+.open .me-more { display: grid; }
+.me-open { justify-self: start; height: 34px; padding: 0 16px; border-radius: 99px; border: 0; background: #2A2A2E; color: #F4F1EE; font-weight: 600; cursor: pointer; }
+.me-one { display: grid; }
 .me-pay { display: flex; justify-content: space-between; align-items: center; gap: 10px; background: #202024; border-radius: 14px; padding: 10px 14px; }
 .me-plus { font-size: 12.5px; font-weight: 700; color: #7EE2A8; white-space: nowrap; }
 .me-rk { display: grid; grid-template-columns: 22px 1fr; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 14px; }
@@ -1563,11 +1574,17 @@ a { color: inherit; }
         ${d.waiting.length ? '<ul class="me-list">' + d.waiting.map(w => '<li>' + e(w) + '</li>').join('') + '</ul>' : ''}
       </section>
 
-      <div class="me-two">
-        <section class="me-card">
-          <div class="me-l">Мои оплаты · ${d.month}</div>
-          ${d.payments.length ? d.payments.map(x => `<div class="me-pay"><div><b>${rub(x.cash)} ₽</b> <span class="me-q">чистыми из ${rub(x.gross)}</span><div class="me-q">${e(x.src)} · ${e(x.date.slice(0, 5))}${x.fee ? ' · комиссия ' + String(x.fee).replace('.', ',') + '%' : ''}</div></div><span class="me-plus">+${rub(x.toSalary)} ₽ к ЗП</span></div>`).join('') : '<div class="me-q">Оплат пока нет - первая уже близко 💪</div>'}
-        </section>
+      <section class="me-card">
+        <div class="me-l">🚀 Зоны роста</div>
+        ${d.growth && d.growth.length ? d.growth.map(g => `<div class="me-grow"><div class="me-gh"><b>${e(g.title)}</b>${g.money ? `<span>≈ +${short(g.money)} ₽ в месяц</span>` : ''}</div><div class="me-s">${e(g.text)}</div></div>`).join('') : '<div class="me-s">Все этапы воронки на уровне отдела или выше - так держать! 💪</div>'}
+      </section>
+
+      <section class="me-card">
+        <div class="me-l">Мои оплаты · ${d.month} · ${d.payments.length}</div>
+        ${d.payments.length ? `<div class="me-table"><div class="me-tr me-th"><span>Клиент</span><span>Дата</span><span>Сумма</span><span>Комиссия</span><span>Чистыми</span><span>К ЗП</span></div>${d.payments.map((x, i) => `<div class="me-tr${i >= 3 ? ' me-more' : ''}"><span>${e(x.client || '-')}<em>${e(x.src)}</em></span><span>${e(x.date.slice(0, 5))}</span><span>${rub(x.gross)} ₽</span><span>${x.fee ? String(x.fee).replace('.', ',') + '%' : '-'}</span><span>${rub(x.cash)} ₽</span><span class="me-plus">+${rub(x.toSalary)} ₽</span></div>`).join('')}</div>${d.payments.length > 3 ? `<button class="me-open" onclick="this.parentNode.classList.toggle('open');this.textContent=this.parentNode.classList.contains('open')?'Свернуть':'Показать все ${d.payments.length}'">Показать все ${d.payments.length}</button>` : ''}` : '<div class="me-q">Оплат пока нет - первая уже близко 💪</div>'}
+      </section>
+
+      <div class="me-one">
         <section class="me-card">
           <div class="me-l">Рейтинг команды · по чистой кассе</div>
           ${d.rating.map((r, i) => `<div class="me-rk${r.me ? ' me-mine' : ''}"><span class="me-n">${i + 1}</span><div class="me-rb"><div class="me-rl"><b>${e(r.label)}</b><span>${short(r.cash)}</span></div><div class="me-bar thin"><i style="width:${r.cash / maxR * 100}%"></i></div></div></div>`).join('')}
