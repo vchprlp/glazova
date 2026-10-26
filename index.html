@@ -150,6 +150,71 @@ a { color: inherit; }
 .row2 { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) minmax(0, .62fr); gap: 22px; }
 .row3 { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 22px; }
 .stack { display: flex; flex-direction: column; gap: 22px; min-width: 0; }
+.row4 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 22px; }
+.row4 > .path { grid-column: 1 / -1; }
+
+/* Конверсии */
+.path .card-h .small { margin-left: auto; }
+.flow { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(0, 1fr); align-items: stretch; gap: 8px; }
+.ft { background: var(--track); border-radius: 18px; padding: 14px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.ft .fi { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; margin-bottom: 8px; flex: none; }
+.ft .fi .ico { width: 16px; height: 16px; }
+.ft b { font-size: 26px; font-weight: 600; letter-spacing: -0.04em; line-height: 1.1; }
+.ft span { font-size: 12px; color: var(--muted); line-height: 1.3; }
+.ft .delta { font-size: 11.5px; font-weight: 600; margin-top: 4px; }
+.fa { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-width: 58px; }
+.fa .fc { width: 54px; height: 54px; border-radius: 50%; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent-ink); font-size: 13px; font-weight: 700; letter-spacing: -0.02em; transform: scale(.5); opacity: 0; transition: transform .6s var(--spring), opacity .3s; }
+.path.on .fa .fc { transform: none; opacity: 1; }
+.fa.worst .fc { background: var(--bad-bg); color: var(--bad); }
+.fa small { font-size: 11px; color: var(--muted); text-align: center; line-height: 1.2; }
+.fa em { font-style: normal; font-size: 10.5px; font-weight: 600; }
+.outs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-top: 8px; }
+.outs .ft { flex-direction: row; align-items: center; gap: 12px; }
+.outs .ft .fi { margin: 0; }
+.outs .ft div { min-width: 0; display: flex; flex-direction: column; }
+.outs .ft b { font-size: 22px; }
+.path-note { margin: 14px 0 0; font-size: 12.5px; color: var(--muted); line-height: 1.4; }
+.path-note b { color: var(--bad); font-weight: 600; }
+@media (max-width: 860px) { .outs { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 640px) {
+  .row4 { grid-template-columns: minmax(0, 1fr); }
+  .flow { grid-template-columns: minmax(0, 1fr); }
+  .outs { grid-template-columns: minmax(0, 1fr); }
+  .fa small { text-align: left; }
+  .path .card-h { flex-wrap: wrap; }
+  .path .card-h .small { order: 3; margin: 0; flex-basis: 100%; }
+  .fa { flex-direction: row; justify-content: flex-start; gap: 10px; padding-left: 14px; }
+  .fa .fc { width: 44px; height: 44px; font-size: 12px; }
+}
+
+/* Ждут ответа */
+.hang { display: flex; flex-direction: column; }
+.hang .big { margin-bottom: 4px; }
+.hang-sub { font-size: 12.5px; color: var(--muted); margin: 0 0 16px; }
+.hang .big.zero { color: var(--good); }
+.hang .big.hot { color: var(--bad); }
+.hang-who { display: flex; flex-wrap: wrap; gap: 12px 10px; }
+.hw { position: relative; display: flex; flex-direction: column; align-items: center; gap: 5px; width: 56px; }
+.hw .av { width: 44px; height: 44px; font-size: 14px; }
+.hw em { position: absolute; top: -4px; right: 2px; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 10px; background: var(--bad); color: #fff; font-style: normal; font-size: 11px; font-weight: 700; display: grid; place-items: center; box-shadow: 0 0 0 2px var(--card); }
+.hw span { font-size: 11px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.hang-note { margin: 12px 0 0; font-size: 12.5px; color: var(--muted); line-height: 1.4; }
+
+/* Откуда покупатели */
+.srcs .coll-list { margin-top: 0; gap: 10px; }
+
+/* Линия плана на графике */
+.pline { position: absolute; left: 0; right: 0; border-top: 2px dashed var(--muted); opacity: .55; pointer-events: none; z-index: 2; }
+.pline span { position: absolute; right: 0; bottom: 4px; font-size: 11px; font-weight: 600; color: var(--muted); background: var(--card); padding: 0 4px; border-radius: 4px; white-space: nowrap; }
+
+/* Телевизор: живые цифры */
+.tv-info { position: absolute; inset: 0; z-index: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-align: center; padding: 10px; opacity: 0; transition: opacity .5s; color: #FF8A3D; text-shadow: 0 0 12px rgba(255,106,26,.75); }
+.tv-info small { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: #E9D6CB; text-shadow: 0 0 8px rgba(255,255,255,.35); }
+.tv-info b { font-size: 30px; font-weight: 700; letter-spacing: -0.03em; line-height: 1.05; white-space: nowrap; }
+.tv-info em { font-style: normal; font-size: 11.5px; color: #C9B8AD; text-shadow: none; max-width: 92%; }
+.tv-screen.info .tv-info { opacity: 1; }
+.tv-screen .tv-logo { transition: color .12s linear, opacity .5s; }
+.tv-screen.info .tv-logo { opacity: 0; }
 
 .card { background: var(--card); border-radius: var(--r-card); padding: 22px; box-shadow: var(--shadow); min-width: 0; transition: transform .35s var(--ease), box-shadow .35s var(--ease); }
 .card.lift:hover { transform: translateY(-5px); box-shadow: var(--shadow-hi); }
@@ -577,6 +642,7 @@ a { color: inherit; }
   .banner-text { flex: none; }
   .tv { margin: 0 auto; width: min(324px, 100%); }
   .row2 { grid-template-columns: minmax(0, 1fr); }
+  .tv-info b { font-size: 26px; }
   .stat-tiles { gap: 8px; }
   .tile { padding: 12px 10px; }
   .tile b { font-size: 16px; }
@@ -695,7 +761,7 @@ a { color: inherit; }
             <div class="tv boot" id="tv" aria-hidden="true">
               <div class="tv-ant"><i></i><i></i><b></b></div>
               <div class="tv-body">
-                <div class="tv-bezel"><div class="tv-screen" id="tv-screen"><span class="tv-logo" id="tv-logo">IT<b>.</b>EDUCATION</span><span class="tv-flash" id="tv-flash"></span></div></div>
+                <div class="tv-bezel"><div class="tv-screen" id="tv-screen"><span class="tv-logo" id="tv-logo">IT<b>.</b>EDUCATION</span><span class="tv-flash" id="tv-flash"></span><span class="tv-info" id="tv-info"><small></small><b></b><em></em></span></div></div>
                 <div class="tv-panel"><span class="tv-knob"></span><span class="tv-knob"></span><span class="tv-grille"></span><span class="tv-led"></span></div>
               </div>
               <div class="tv-legs"><i></i><i></i></div>
@@ -734,6 +800,12 @@ a { color: inherit; }
                 <div id="best-text"></div>
               </div>
             </div>
+          </div>
+
+          <div class="row4">
+            <div class="card lift path" id="path" data-anim style="--i:7"></div>
+            <div class="card lift hang" id="hang" data-anim style="--i:8"></div>
+            <div class="card lift srcs" id="srcs" data-anim style="--i:9"></div>
           </div>
         </div>
 
@@ -921,6 +993,16 @@ a { color: inherit; }
     document.addEventListener('visibilitychange', () => { document.hidden ? stop() : loop(); });
     setTimeout(() => $('tv').classList.remove('boot'), 1000);
     loop();
+    /* 6 секунд летает логотип, потом 4 секунды живая цифра */
+    const info = $('tv-info'); let si = 0;
+    const show = () => {
+      const s = tvSlides(); if (!s.length || document.hidden) { setTimeout(show, 6000); return; }
+      const [a, b, c] = s[si++ % s.length];
+      info.children[0].textContent = a; info.children[1].textContent = b; info.children[2].textContent = c;
+      scr.classList.add('info'); flash.classList.remove('on'); void flash.offsetWidth; flash.classList.add('on');
+      setTimeout(() => { scr.classList.remove('info'); setTimeout(show, 6000); }, 4000);
+    };
+    setTimeout(show, 3500);
   }
   const SVG = {
     cash: '<svg class="ico" viewBox="0 0 24 24"><rect x="3.5" y="6" width="17" height="12.5" rx="3"/><path d="M3.5 10.5h17M7.5 15h3"/></svg>',
@@ -990,7 +1072,8 @@ a { color: inherit; }
   }
   function drawBanner() {
     $('b-title').textContent = cap(W.C.nom) + ': ' + pct(M.done, 0) + ' плана';
-    $('b-text').textContent = 'Сделано ' + money(M.cash) + ' из ' + money(M.plan) + '. Чтобы выйти на план, нужно приносить ' + money(M.need) + ' в день все ' + M.left + ' ' + plural(M.left, 'оставшийся день', 'оставшихся дня', 'оставшихся дней') + '.';
+    const fc = M.left > 0 ? ' Если темп сохранится, к ' + M.total + ' ' + W.C.gen + ' будет около ' + money(M.forecast) + '.' : '';
+    $('b-text').textContent = 'Сделано ' + money(M.cash) + ' из ' + money(M.plan) + '.' + fc + (M.left > 0 && M.cash < M.plan ? ' Чтобы выйти на план, нужно приносить ' + money(M.need) + ' в день все ' + M.left + ' ' + plural(M.left, 'оставшийся день', 'оставшихся дня', 'оставшихся дней') + '.' : '');
     const ok = M.forecast >= M.plan, st = $('b-status');
     st.className = 'chip ' + (ok ? 'good' : 'bad'); st.replaceChildren(el('i'), document.createTextNode(ok ? 'Идём в план' : 'План под угрозой'));
     const up = $('b-upd');
@@ -1052,7 +1135,8 @@ a { color: inherit; }
     sp.append(bigA, sep, bigB, el('span', 'hint', range === 'week' ? 'оплат и кэш за последние 7 дней' : 'оплат и кэш с 1 по ' + dlabel(M.asof)));
 
     const box = $('pills'); box.replaceChildren(); box.style.gridTemplateColumns = 'repeat(' + days.length + ', minmax(0, 1fr))';
-    const max = Math.max(...days.map(d => d.cash), 1);
+    const planDay = M.plan / M.total;
+    const max = Math.max(...days.map(d => d.cash), planDay * 1.08, 1);
     const top = days.reduce((a, d) => d.cash > a.cash ? d : a, days[0]);
     const step = days.length > 12 ? (box.clientWidth < 420 ? 4 : 2) : 1;
     days.forEach((d, i) => {
@@ -1073,6 +1157,9 @@ a { color: inherit; }
     });
     function markTop() { const idx = days.indexOf(top); const t = box.children[idx]?.querySelector('.ptrack'); if (t && top.cash) t.append(el('div', 'ptag num', moneyShort(top.cash))); }
     markTop();
+    const pl = el('div', 'pline'); pl.append(el('span', 'num', 'план ' + moneyShort(planDay) + ' в день'));
+    pl.style.top = 'calc(26px + (100% - 47px) * ' + (1 - planDay / max).toFixed(4) + ')';
+    pl.title = 'Сколько нужно приносить каждый день, чтобы закрыть план месяца'; box.append(pl);
     grown = true;
 
     const tiles = $('tiles'); tiles.replaceChildren();
@@ -1454,7 +1541,129 @@ a { color: inherit; }
       (M.refunds.length ? ' ' + plural(M.refunds.length, 'Возврат', 'Возврата', 'Возвратов') + ' (' + M.refunds.length + ' на ' + money(r) + ') не считаем, поэтому кэш здесь меньше, чем в сводной таблице.' : '');
   }
 
-  function drawAll() { drawBanner(); drawTeam(); drawRate(); drawConv(); drawStats(); drawCountdown(); drawBest(); drawWeek(); drawLastPays(); drawFeed(); drawFoot(); }
+  /* Конверсии: поток месяца + где клиенты сейчас */
+  const ICO_DOWN = '<svg class="ico" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
+  const FICO = {
+    lead: SVG.pin, meet: SVG.cal, held: SVG.check, pay: SVG.cash,
+    think: '<svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 8v4.5l3 2"/></svg>',
+    no: '<svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M9 9l6 6M15 9l-6 6"/></svg>',
+    mute: '<svg class="ico" viewBox="0 0 24 24"><path d="M5 5.5h14a1.5 1.5 0 0 1 1.5 1.5v8a1.5 1.5 0 0 1-1.5 1.5H10l-4.5 3.5V16.5H5A1.5 1.5 0 0 1 3.5 15V7A1.5 1.5 0 0 1 5 5.5z"/><path d="M9.5 11h.01M12 11h.01M14.5 11h.01"/></svg>',
+    all: SVG.star
+  };
+  let PIPE = null;
+  function drawPath() {
+    const c = $('path'); c.replaceChildren(); c.classList.remove('on');
+    const h = el('div', 'card-h'); h.append(el('h2', null, 'Конверсии'), el('span', 'small', 'с 1 по ' + dlabel(M.asof) + ', сравнение с теми же днями ' + W.P.gen));
+    const go = el('button', 'icon-btn'); go.type = 'button'; go.dataset.go = 'funnel'; go.setAttribute('aria-label', 'Открыть воронку'); go.innerHTML = ICO_DOWN; h.append(go); c.append(h);
+    const tile = (ico, col, v, label, delta) => {
+      const t = el('div', 'ft'); const f = el('span', 'fi'); f.innerHTML = ico; f.style.background = tintOf(col); f.style.color = col;
+      const b = el('b', 'num'); countUp(b, v, x => nf.format(Math.round(x)));
+      t.append(f, b, el('span', null, label));
+      if (delta != null && isFinite(delta)) t.append(el('span', 'delta num ' + (delta >= 0 ? 'up' : 'down'), signed(delta) + ' к ' + W.P.dat));
+      return t;
+    };
+    const st = [
+      [FICO.lead, '#FF5A00', M.leads, M.leadsS, 'лидов взято'],
+      [FICO.meet, '#C98A2E', M.booked, M.bookedS, 'встреч назначено'],
+      [FICO.held, '#3F86D9', M.held, M.heldS, 'встреч проведено'],
+      [FICO.pay, '#3E9C6C', M.paid, M.paidS, 'оплат']
+    ];
+    const cv = st.slice(1).map((x, i) => ({ c: st[i][2] ? x[2] / st[i][2] : 0, p: st[i][3] ? x[3] / st[i][3] : 0 }));
+    const worst = cv.reduce((w, x, i) => x.c - x.p < cv[w].c - cv[w].p ? i : w, 0);
+    const caps = ['лид → встреча', 'доходимость', 'встреча → оплата'];
+    const flow = el('div', 'flow');
+    st.forEach(([ico, col, v, vs, label], i) => {
+      if (i) {
+        const x = cv[i - 1], d = x.c - x.p, bad = i - 1 === worst && d < 0;
+        const a = el('div', 'fa' + (bad ? ' worst' : '')); const circ = el('div', 'fc num', pct(x.c, 0)); circ.style.transitionDelay = (i * 120) + 'ms';
+        const cap = el('small'); cap.append(document.createTextNode(caps[i - 1]), el('br'), el('em', 'num ' + (d >= 0 ? 'up' : 'down'), (d >= 0 ? '+' : '−') + Math.abs(d * 100).toFixed(1).replace('.', ',') + ' п.п.'));
+        a.title = 'В ' + W.P.prep + ' за те же дни: ' + pct(x.p, 1); a.append(circ, cap); flow.append(a);
+      }
+      flow.append(tile(ico, col, v, label, vs ? v / vs - 1 : null));
+    });
+    c.append(flow);
+
+    const outs = el('div', 'outs');
+    const refused = OBJ.filter(o => o.month === M.cur).length;
+    const out = (ico, col, v, label, sub) => {
+      const t = el('div', 'ft'); const f = el('span', 'fi'); f.innerHTML = ico; f.style.background = tintOf(col); f.style.color = col;
+      const d = el('div'); const b = el('b', 'num'); if (v == null) b.textContent = '—'; else if (typeof v === 'string') b.textContent = v; else countUp(b, v, x => nf.format(Math.round(x)));
+      d.append(b, el('span', null, label)); if (sub) d.append(el('span', null, sub)); t.append(f, d); return t;
+    };
+    outs.append(
+      out(FICO.think, '#7C66DC', PIPE ? PIPE.think : null, 'думают', 'после встречи, сейчас'),
+      out(FICO.no, '#D9534F', refused, 'отказались', 'за ' + W.C.nom),
+      out(FICO.mute, '#8E8A99', PIPE ? PIPE.ignore : null, 'в игноре', 'не отвечают, сейчас'),
+      out(FICO.all, '#FF5A00', pct(M.leads ? M.paid / M.leads : 0, 1), 'лид → оплата', 'в ' + W.P.prep + ' ' + pct(M.leadsS ? M.paidS / M.leadsS : 0, 1))
+    );
+    c.append(outs);
+    const w = cv[worst]; const note = el('p', 'path-note');
+    if (w.c < w.p) note.append(document.createTextNode('Сильнее всего просели на шаге '), el('b', null, caps[worst] + ': ' + pct(w.c, 0)), document.createTextNode(' против ' + pct(w.p, 0) + ' в ' + W.P.prep + '.'));
+    else note.textContent = 'Все шаги не хуже, чем в ' + W.P.prep + ' за те же дни.';
+    if (!PIPE) note.append(document.createTextNode(' «Думают» и «в игноре» появятся, когда бот начнёт вести всех менеджеров.'));
+    c.append(note);
+    requestAnimationFrame(() => requestAnimationFrame(() => c.classList.add('on')));
+  }
+
+  /* Ждут ответа: клиент написал последним больше 30 минут назад */
+  let HANG = null;
+  const ago = m => m >= 1440 ? Math.floor(m / 1440) + ' дн' : m >= 60 ? Math.floor(m / 60) + ' ч' : m + ' мин';
+  function drawHang() {
+    const c = $('hang'); c.replaceChildren();
+    const h = el('div', 'card-h'); h.append(el('h2', null, 'Ждут ответа')); c.append(h);
+    if (HANG == null) { c.append(el('div', 'big num', '—'), el('p', 'hang-note', 'Переписки пока не подключены: как только бот начнёт их сохранять, здесь появятся клиенты без ответа.')); return; }
+    const big = el('div', 'big num ' + (HANG.length ? 'hot' : 'zero')); countUp(big, HANG.length, v => String(Math.round(v))); c.append(big, el('p', 'hang-sub', plural(HANG.length, 'клиент', 'клиента', 'клиентов') + ' без ответа дольше 30 минут'));
+    if (!HANG.length) { c.append(el('p', 'hang-note', 'Всем клиентам ответили. Так держать.')); return; }
+    const by = {}; HANG.forEach(x => { (by[x.manager] = by[x.manager] || []).push(x); });
+    const who = el('div', 'hang-who');
+    Object.entries(by).sort((a, b) => b[1].length - a[1].length).forEach(([m, xs]) => {
+      const d = el('div', 'hw'); const av = el('div', 'av', initials(m).slice(0, 2)); av.style.background = M.colorOf[m] || '#8E8A99';
+      d.title = m + ': ' + xs.map(x => x.client + (x.nick ? ' @' + x.nick : '') + ' (' + ago(x.mins) + ')').join(', ');
+      d.append(av, el('em', 'num', String(xs.length)), el('span', null, m.split(' ')[0])); who.append(d);
+    });
+    c.append(who);
+    const o = HANG[0]; c.append(el('p', 'hang-note', 'Дольше всех ждёт ' + o.client + (o.nick ? ' @' + o.nick : '') + ' - ' + ago(o.mins) + ', менеджер ' + o.manager + '.'));
+  }
+
+  /* Откуда покупатели: источники по чистой кассе месяца */
+  function drawSrcs() {
+    const c = $('srcs'); c.replaceChildren();
+    const h = el('div', 'card-h'); h.append(el('h2', null, 'Откуда покупатели'));
+    const go = el('button', 'icon-btn'); go.type = 'button'; go.dataset.go = 'payments'; go.setAttribute('aria-label', 'Открыть оплаты'); go.innerHTML = ICO_DOWN; h.append(go); c.append(h);
+    const live = M.octPays.filter(p => p.kind !== 'возврат'); const total = live.reduce((a, p) => a + Number(p.net), 0) || 1;
+    const srcs = {}; live.forEach(p => { srcs[p.source] = srcs[p.source] || { n: 0, cash: 0 }; srcs[p.source].n++; srcs[p.source].cash += Number(p.net); });
+    const order = Object.entries(srcs).sort((a, b) => b[1].cash - a[1].cash).slice(0, 5); const max = order[0] ? order[0][1].cash : 1;
+    const list = el('div', 'coll-list');
+    order.forEach(([k, v]) => {
+      const b = el('button', 'ci'); b.type = 'button';
+      const fold = el('span', 'fold'); fold.innerHTML = '<svg class="ico" viewBox="0 0 24 24">' + (SRC_ICONS[k] || SRC_ICON_OTHER) + '</svg>'; fold.style.background = tintOf(srcColor(k)); fold.style.color = srcColor(k);
+      const mid = el('span'); const t = el('span', 'ci-t'); t.append(document.createTextNode(k), el('span', 'num', moneyShort(v.cash) + ' · ' + pct(v.cash / total, 0)));
+      const bar = el('span', 'ci-b'); const i = el('i'); i.style.background = srcColor(k); i.style.width = '0%'; bar.append(i); mid.append(t, bar); mid.style.display = 'block'; mid.style.minWidth = '0';
+      requestAnimationFrame(() => requestAnimationFrame(() => { i.style.width = (v.cash / max * 100) + '%'; }));
+      b.title = v.n + ' ' + plural(v.n, 'оплата', 'оплаты', 'оплат');
+      b.append(fold, mid); b.addEventListener('click', () => { paySrc = k; payMonth = M.cur; payLimit = 12; go2('payments'); }); list.append(b);
+    });
+    if (!order.length) list.append(el('p', 'label', 'Оплат пока нет.'));
+    c.append(list);
+  }
+  const go2 = p => go(p);
+
+  /* Телевизор показывает живые цифры по очереди */
+  function tvSlides() {
+    if (!M) return [];
+    const today = M.byDay.find(d => d.date === M.asof) || { cash: 0, paid: 0 };
+    const best = [...M.managers].sort((a, b) => b.cash - a.cash)[0];
+    const s = [
+      [dlabel(M.asof), moneyShort(today.cash), today.paid + ' ' + plural(today.paid, 'оплата', 'оплаты', 'оплат') + ' за день'],
+      ['Прогноз месяца', moneyShort(M.forecast), 'план ' + moneyShort(M.plan)],
+      ['Нужно в день', moneyShort(M.need), 'чтобы закрыть план']
+    ];
+    if (HANG) s.push(['Ждут ответа', String(HANG.length), HANG.length ? 'клиентов дольше 30 минут' : 'всем ответили']);
+    if (best) s.push(['Лидер', best.name, moneyShort(best.cash)]);
+    return s;
+  }
+
+  function drawAll() { drawBanner(); drawTeam(); drawRate(); drawConv(); drawStats(); drawCountdown(); drawBest(); drawPath(); drawHang(); drawSrcs(); drawWeek(); drawLastPays(); drawFeed(); drawFoot(); }
 
   /* ---------- управление ---------- */
   function moveInd() {
@@ -1633,7 +1842,7 @@ a { color: inherit; }
     if (!r.ok) throw new Error('база ответила ' + r.status);
     const j = await r.json();
     if (j.me) { renderMe(j.me); throw new MeMode(); }
-    return { sheets: j.sheets, synced_at: j.synced_at };
+    return { sheets: j.sheets, synced_at: j.synced_at, hang: j.hang ?? null, pipe: j.pipe ?? null };
   }
   async function loadBookXlsx() {
     const r = await fetch('https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/export?format=xlsx', { cache: 'no-store' });
@@ -1774,7 +1983,7 @@ a { color: inherit; }
     const cd = C.d.filter(r => r.date <= last);
     const [objections, gid] = await Promise.all([objectionsOf(book, [keyOf(...cur), keyOf(...prevMonth(...cur))]), payGid('Оплаты ' + RU[cur[1] - 1])]);
     const stamp = mskNow.toISOString().slice(0, 19) + '+03:00';
-    return { payments: P.p.concat(C.p), days: P.d.concat(cd), managers: cm, plans: [P.plan, C.plan], meta: { updated_at: stamp, asof: last, pay_gid: gid }, objections };
+    return { payments: P.p.concat(C.p), days: P.d.concat(cd), managers: cm, plans: [P.plan, C.plan], meta: { updated_at: stamp, asof: last, pay_gid: gid }, objections, hang: book.hang ?? null, pipe: book.pipe ?? null };
   }
   window.glazovaBuild = buildLive; // для сверки с build_live.py
 
@@ -1794,7 +2003,7 @@ a { color: inherit; }
     b.setAttribute('aria-label', 'Обновить данные из таблицы. Обновлено ' + ago);
   }
   function applyData(data) {
-    RAW = data.payments; META = data.meta; OBJ = data.objections || [];
+    RAW = data.payments; META = data.meta; OBJ = data.objections || []; HANG = data.hang ?? null; PIPE = data.pipe ?? null;
     document.querySelectorAll('a[href*="docs.google.com/spreadsheets"]').forEach(a => { a.href = TABLE_URL + (/^\d+$/.test(META.pay_gid || '') ? '#gid=' + META.pay_gid : ''); });
     const keepPay = payMonth, keepObj = objMonth;
     M = compute(data.payments, data.days, data.managers, data.plans);
