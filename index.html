@@ -595,6 +595,22 @@ a { color: inherit; }
 #login input { height: 44px; border-radius: 12px; border: 1px solid rgba(127,127,127,.3); padding: 0 14px; font: inherit; background: transparent; color: inherit; }
 #login button { height: 44px; border-radius: 999px; border: 0; background: #FF5A00; color: #fff; font-weight: 600; cursor: pointer; }
 #login .lerr { color: #d33; font-size: 13px; min-height: 18px; }
+#me { font-family: Inter, system-ui, sans-serif; position: fixed; inset: 0; z-index: 900; overflow-y: auto; background: #0B0B0C; color: #F4F1EE; padding: 24px 16px 72px; }
+.me-wrap { max-width: 640px; margin: 0 auto; display: grid; gap: 14px; }
+.me-hi { font-size: 15px; color: #A39E99; }
+.me-card { background: #17171A; border-radius: 22px; padding: 20px; display: grid; gap: 8px; }
+.me-main { background: linear-gradient(135deg, #3A1A08, #17171A 70%); }
+.me-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+@media (max-width: 520px) { .me-row { grid-template-columns: 1fr; } }
+.me-l { font-size: 13px; color: #A39E99; font-weight: 500; }
+.me-big { font-size: clamp(34px, 8vw, 48px); font-weight: 700; letter-spacing: -0.03em; }
+.me-mid { font-size: 26px; font-weight: 700; letter-spacing: -0.02em; }
+.me-s { font-size: 14px; color: #D9D4CF; }
+.me-s b { color: #FF7A2E; }
+.me-bar { height: 10px; border-radius: 99px; background: #2A2A2E; overflow: hidden; }
+.me-bar i { display: block; height: 100%; background: #FF5A00; border-radius: 99px; }
+.me-tip { font-size: 14px; font-weight: 600; color: #FFB27F; }
+.me-list { margin: 0; padding-left: 18px; color: #D9D4CF; font-size: 14px; display: grid; gap: 4px; }
 #logout-btn { position: fixed; right: 16px; bottom: 16px; z-index: 50; height: 32px; padding: 0 14px; border-radius: 999px; border: 0; background: rgba(127,127,127,.15); color: inherit; font-size: 12px; cursor: pointer; }
 </style>
 </head>
@@ -1470,6 +1486,49 @@ a { color: inherit; }
   const MSK = 3 * 36e5;
   const CACHE_KEY = 'glazova-dash-cache-v1';
   class SheetError extends Error {}
+  class MeMode extends Error {}
+  const rub = n => Math.round(n).toLocaleString('ru-RU');
+  const pl = (n, a, b, c) => { const m = n % 10, h = n % 100; return m === 1 && h !== 11 ? a : m >= 2 && m <= 4 && (h < 12 || h > 14) ? b : c; };
+  function renderMe(d) {
+    document.title = 'Мои продажи · ' + d.label;
+    $('logout-btn').textContent = d.label + ' · Выйти';
+    let box = $('me');
+    if (!box) { box = document.createElement('div'); box.id = 'me'; document.body.appendChild(box); }
+    const pct = d.plan ? Math.min(100, Math.round(d.cash / d.plan * 100)) : 0;
+    const convLine = d.myConv == null ? 'Пока мало встреч для статистики'
+      : 'Встреча → оплата: <b>' + Math.round(d.myConv * 100) + '%</b>' + (d.teamConv != null ? ', у команды ' + Math.round(d.teamConv * 100) + '%' : '');
+    const tip = d.waitingCount ? '💡 Дожимай: ' + d.waitingCount + ' ' + pl(d.waitingCount, 'клиент ждёт', 'клиента ждут', 'клиентов ждут') + ' решения'
+      : d.ignore ? '💡 Напиши тем, кто в игноре: ' + d.ignore : '💡 Все клиенты в работе - бери новых лидов';
+    box.innerHTML = `
+      <div class="me-wrap">
+        <div class="me-hi">Привет, ${d.label.split(' ')[0]}! ${d.month}</div>
+        <section class="me-card me-main">
+          <div class="me-l">Мои деньги в этом месяце</div>
+          <div class="me-big">🔥 ${rub(d.cash)} ₽</div>
+          <div class="me-s">${d.count} ${pl(d.count, 'оплата', 'оплаты', 'оплат')}</div>
+          <div class="me-bar"><i style="width:${pct}%"></i></div>
+          <div class="me-s">${d.left > 0 ? 'До плана ' + rub(d.plan) + ' ₽ осталось ' + rub(d.left) + ' ₽ · это ~' + d.leftDeals + ' ' + pl(d.leftDeals, 'оплата', 'оплаты', 'оплат') : '🎉 План ' + rub(d.plan) + ' ₽ выполнен!'}</div>
+        </section>
+        <div class="me-row">
+          <section class="me-card">
+            <div class="me-l">Моя зарплата</div>
+            <div class="me-mid">💰 ${rub(d.salary)} ₽</div>
+            <div class="me-s">Ещё 1 оплата → <b>+${rub(d.nextSalary)} ₽</b></div>
+          </section>
+          <section class="me-card">
+            <div class="me-l">Я в команде</div>
+            <div class="me-mid">🏆 ${d.rank} место из ${d.total}</div>
+            <div class="me-s">${d.rank === 1 ? 'Ты лидер месяца - держи темп!' : 'До ' + (d.rank - 1) + ' места: ' + rub(d.ahead) + ' ₽ · ~' + d.aheadDeals + ' ' + pl(d.aheadDeals, 'оплата', 'оплаты', 'оплат')}</div>
+          </section>
+        </div>
+        <section class="me-card">
+          <div class="me-l">Где я теряю</div>
+          <div class="me-s">${convLine}</div>
+          <div class="me-tip">${tip}</div>
+          ${d.waiting.length ? '<ul class="me-list">' + d.waiting.map(w => '<li>' + w.replace(/[<>&]/g, '') + '</li>').join('') + '</ul>' : ''}
+        </section>
+      </div>`;
+  }
 
   async function unzip(buf) {
     const dv = new DataView(buf), u8 = new Uint8Array(buf), dec = new TextDecoder();
@@ -1509,7 +1568,7 @@ a { color: inherit; }
     if (r.status === 401 || r.status === 403) { showLogin(r.status === 403 ? 'У этой почты нет доступа к дашборду' : ''); throw new Error('нет доступа'); }
     if (!r.ok) throw new Error('база ответила ' + r.status);
     const j = await r.json();
-    if (j.role === 'manager' && j.label) { document.title = 'Мои продажи · ' + j.label; $('logout-btn').textContent = j.label + ' · Выйти'; }
+    if (j.me) { renderMe(j.me); throw new MeMode(); }
     return { sheets: j.sheets, synced_at: j.synced_at };
   }
   async function loadBookXlsx() {
@@ -1691,6 +1750,7 @@ a { color: inherit; }
       loading = false; applyData(data);
       if (manual) toast('Цифры обновлены из таблицы');
     } catch (err) {
+      if (err instanceof MeMode) { loading = false; return; }
       loading = false; lastError = err; drawSync();
       if (!M) $('page-overview').replaceChildren(el('div', 'err', 'Не получилось загрузить данные из таблицы (' + err.message + '). Проверь интернет и обнови страницу; если не поможет, напиши Славе.'));
       else if (manual) toast('Не получилось обновить: ' + err.message);
