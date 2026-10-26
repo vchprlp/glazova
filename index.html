@@ -1509,6 +1509,7 @@ a { color: inherit; }
     if (r.status === 401 || r.status === 403) { showLogin(r.status === 403 ? 'У этой почты нет доступа к дашборду' : ''); throw new Error('нет доступа'); }
     if (!r.ok) throw new Error('база ответила ' + r.status);
     const j = await r.json();
+    if (j.role === 'manager' && j.label) { document.title = 'Мои продажи · ' + j.label; $('logout-btn').textContent = j.label + ' · Выйти'; }
     return { sheets: j.sheets, synced_at: j.synced_at };
   }
   async function loadBookXlsx() {
