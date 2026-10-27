@@ -6,7 +6,7 @@
 <meta name="robots" content="noindex,nofollow">
 <title>Продажи Глазовой 2.0</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Crect width=%2232%22 height=%2232%22 rx=%228%22 fill=%22%230A0A0A%22/%3E%3Cpath d=%22M9 25 16 7M16 25 23 7%22 stroke=%22%23fff%22 stroke-width=%223.4%22 stroke-linecap=%22round%22/%3E%3Ccircle cx=%2226%22 cy=%228%22 r=%222.6%22 fill=%22%23FF5A00%22/%3E%3C/svg%3E">
-<script>try{var t=localStorage.getItem('theme');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t}catch(e){}</script>
+<script>document.documentElement.dataset.theme='dark'</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
@@ -711,6 +711,164 @@ a { color: inherit; }
 .me-rl { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 6px; }
 .me-rl span { color: #A39E99; }
 #logout-btn { position: fixed; right: 16px; bottom: 16px; z-index: 50; height: 32px; padding: 0 14px; border-radius: 999px; border: 0; background: rgba(127,127,127,.15); color: inherit; font-size: 12px; cursor: pointer; }
+/* ===== Динамика (27.10): карточки выезжают из глубины, свечение за курсором, стекло. ===== */
+:root { --glow: rgba(255,90,0,.075); --glow-edge: rgba(255,90,0,.55); --glass: rgba(255,255,255,.62); }
+:root[data-theme="dark"] { --glow: rgba(255,106,26,.11); --glow-edge: rgba(255,138,61,.75); --glass: rgba(28,25,24,.66); }
+
+@media (prefers-reduced-motion: no-preference) {
+  /* Открытие: карточка поднимается из глубины, потом по очереди проявляется её содержимое */
+  .page.play [data-anim] { animation: deal .85s var(--ease) backwards; animation-delay: calc(min(var(--i, 0), 9) * 60ms + 40ms); transform-origin: 50% 100%; }
+  @keyframes deal {
+    from { opacity: 0; transform: perspective(1200px) translateY(44px) rotateX(10deg) scale(.96); filter: blur(10px); }
+    55% { opacity: 1; filter: blur(0); }
+    to { opacity: 1; transform: none; filter: none; }
+  }
+  .page.play [data-anim] > :not(.tv):not(.coil) { animation: inner .6s var(--ease) backwards; animation-delay: calc(min(var(--i, 0), 9) * 60ms + 230ms); }
+  .page.play [data-anim] > :not(.tv):not(.coil):nth-child(2) { animation-delay: calc(min(var(--i, 0), 9) * 60ms + 300ms); }
+  .page.play [data-anim] > :not(.tv):not(.coil):nth-child(3) { animation-delay: calc(min(var(--i, 0), 9) * 60ms + 370ms); }
+  .page.play [data-anim] > :not(.tv):not(.coil):nth-child(n+4) { animation-delay: calc(min(var(--i, 0), 9) * 60ms + 440ms); }
+  @keyframes inner { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+  /* Полоски «Кэш в день» заполняются слева направо */
+  .page.play .rate .bar i { animation: fillx 1s var(--ease) backwards; animation-delay: .45s; transform-origin: 0 50%; }
+  .page.play .rate:nth-child(2) .bar i { animation-delay: .55s; }
+  .page.play .rate:nth-child(3) .bar i { animation-delay: .65s; }
+  @keyframes fillx { from { transform: scaleX(0); } }
+  /* Баннер: по нему один раз проходит блик */
+  .page.play .banner::after { content: ""; position: absolute; inset: 0; z-index: 3; pointer-events: none; background: linear-gradient(100deg, transparent 30%, rgba(255,255,255,.22) 48%, rgba(255,255,255,.05) 56%, transparent 70%); transform: translateX(-110%); animation: sweep 1.4s var(--ease) .5s forwards; }
+  @keyframes sweep { to { transform: translateX(110%); } }
+  /* Фон в тёмной теме: тёплые пятна медленно дышат */
+  :root[data-theme="dark"] body::before { animation: drift 28s ease-in-out infinite alternate; }
+  @keyframes drift { to { transform: translate3d(-4%, 3%, 0) scale(1.08); } }
+}
+
+/* Свечение за курсором: мягкое пятно на карточке и подсвеченный край */
+.card, .pay, .ev, .dark-card { position: relative; isolation: isolate; }
+.card::before, .pay::before, .ev::before, .dark-card::before {
+  content: ""; position: absolute; inset: 0; z-index: -1; border-radius: inherit; pointer-events: none; opacity: 0; transition: opacity .4s var(--ease);
+  background: radial-gradient(380px circle at var(--mx, 50%) var(--my, 50%), var(--glow), transparent 62%);
+}
+.card::after, .pay::after, .ev::after, .dark-card::after {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; opacity: 0; transition: opacity .4s var(--ease); padding: 1px;
+  background: radial-gradient(240px circle at var(--mx, 50%) var(--my, 50%), var(--glow-edge), transparent 65%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+}
+.card:hover::before, .pay:hover::before, .ev:hover::before, .dark-card:hover::before,
+.card:hover::after, .pay:hover::after, .ev:hover::after, .dark-card:hover::after { opacity: 1; }
+@media (hover: none) { .card::before, .card::after, .pay::before, .pay::after, .ev::before, .ev::after, .dark-card::before, .dark-card::after { display: none; } }
+
+/* Наведение: отклик живее */
+.card.lift { transition: transform .45s var(--spring), box-shadow .35s var(--ease); }
+.card.lift:hover { transform: translateY(-6px); }
+.pill-btn { transition: transform .35s var(--spring), background-color .2s, box-shadow .3s var(--ease); }
+.pill-btn:hover { box-shadow: 0 8px 22px -6px rgba(255,90,0,.55); }
+.member .av { transition: transform .35s var(--spring); }
+.member:hover .av { transform: scale(1.12) rotate(-4deg); }
+.pcol .pfill { transition: opacity .25s var(--ease), filter .25s; }
+.pills:hover .pcol:not(:hover):not(:focus) .pfill { opacity: .4; }
+.wd { transition: background .2s, transform .3s var(--spring); }
+.wd:hover:not(:disabled) { transform: translateY(-2px); }
+.nav-ind { box-shadow: 0 0 0 5px rgba(255,90,0,.14), 0 8px 22px rgba(255,90,0,.5); }
+.nav-btn .ico { transition: transform .3s var(--spring); }
+.nav-btn:hover:not([aria-current]) .ico { transform: scale(1.12); }
+
+/* Стекло: всплывашки, меню и чипы в баннере */
+.ptag, :root[data-theme="dark"] .nav-btn .tip { background: var(--glass); color: var(--ink); -webkit-backdrop-filter: blur(14px) saturate(1.5); backdrop-filter: blur(14px) saturate(1.5); box-shadow: inset 0 0 0 1px rgba(255,255,255,.14), 0 6px 18px rgba(0,0,0,.18); }
+.banner .chip { -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
+:root[data-theme="dark"] .side { background: rgba(22,20,19,.72); -webkit-backdrop-filter: blur(18px) saturate(1.4); backdrop-filter: blur(18px) saturate(1.4); box-shadow: inset 0 0 0 1px rgba(255,255,255,.06); }
+:root[data-theme="dark"] body::before { content: ""; position: fixed; inset: -10%; z-index: -1; pointer-events: none;
+  background: radial-gradient(40% 35% at 85% 5%, rgba(255,90,0,.13), transparent 70%), radial-gradient(35% 30% at 10% 95%, rgba(255,138,61,.07), transparent 70%); }
+:root[data-theme="dark"] .card, :root[data-theme="dark"] .cal, :root[data-theme="dark"] .pay, :root[data-theme="dark"] .ev { box-shadow: inset 0 1px 0 rgba(255,255,255,.05), var(--shadow); }
+/* ===== Динамика 2 (27.10): дольше и плавнее открытие, стеклянные карточки, живой фон, заметный отклик при наведении ===== */
+:root { --stg: 110ms; --bg-glass: rgba(255,255,255,.58); --bg-glass-2: rgba(255,255,255,.42); --glass-line: rgba(255,255,255,.7); }
+:root[data-theme="dark"] { --bg-glass: rgba(26,23,22,.52); --bg-glass-2: rgba(255,255,255,.045); --glass-line: rgba(255,255,255,.08); }
+
+/* Живой фон: три тёплых пятна плавают и чуть следуют за мышью */
+:root[data-theme] body::before, :root[data-theme] body::after { content: ""; position: fixed; z-index: -1; pointer-events: none; border-radius: 50%; filter: blur(70px); will-change: transform; }
+:root[data-theme] body::before { inset: auto; left: 52%; top: -18%; width: 62vw; height: 62vw; background: radial-gradient(circle, rgba(255,90,0,.30), transparent 65%);
+  transform: translate3d(calc(var(--px, 0) * -30px), calc(var(--py, 0) * -24px), 0); }
+:root[data-theme] body::after { left: -14%; top: 48%; width: 52vw; height: 52vw; background: radial-gradient(circle, rgba(255,160,90,.20), transparent 65%);
+  transform: translate3d(calc(var(--px, 0) * 26px), calc(var(--py, 0) * 20px), 0); }
+:root[data-theme]::before { content: ""; position: fixed; z-index: -1; pointer-events: none; left: 22%; top: 30%; width: 38vw; height: 38vw; border-radius: 50%; filter: blur(80px);
+  background: radial-gradient(circle, rgba(255,120,40,.16), transparent 65%); }
+:root[data-theme="light"] body::before { background: radial-gradient(circle, rgba(255,140,60,.34), transparent 65%); }
+:root[data-theme="light"] body::after { background: radial-gradient(circle, rgba(255,190,140,.42), transparent 65%); }
+:root[data-theme="light"]::before { background: radial-gradient(circle, rgba(255,170,110,.26), transparent 65%); }
+@media (prefers-reduced-motion: no-preference) {
+  :root[data-theme] body::before { animation: blob-a 22s ease-in-out infinite alternate; }
+  :root[data-theme] body::after { animation: blob-b 26s ease-in-out infinite alternate; }
+  :root[data-theme]::before { animation: blob-c 30s ease-in-out infinite alternate; }
+  @keyframes blob-a { 0% { translate: 0 0; scale: 1; } 50% { translate: -12vw 10vh; scale: 1.15; } 100% { translate: -4vw 22vh; scale: .95; } }
+  @keyframes blob-b { 0% { translate: 0 0; scale: 1; } 50% { translate: 16vw -12vh; scale: 1.2; } 100% { translate: 6vw -26vh; scale: 1; } }
+  @keyframes blob-c { 0% { translate: 0 0; scale: 1; } 50% { translate: 18vw 14vh; scale: .85; } 100% { translate: -10vw -6vh; scale: 1.1; } }
+}
+
+/* Стекло: карточки полупрозрачные, фон просвечивает и размывается */
+.card, .cal, .dark-card, .pay, .ev, .side {
+  background-color: var(--bg-glass);
+  -webkit-backdrop-filter: blur(22px) saturate(1.5); backdrop-filter: blur(22px) saturate(1.5);
+  box-shadow: inset 0 1px 0 var(--glass-line), inset 0 0 0 1px var(--glass-line), var(--shadow);
+}
+.card { background-image: none; }
+.cal { border-radius: var(--r-card); padding: 16px; }
+.tile, .member, .seg { background-color: var(--bg-glass-2); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
+:root[data-theme="dark"] .side { background-color: rgba(18,16,15,.55); }
+:root[data-theme="light"] .side { background-color: rgba(10,10,10,.82); -webkit-backdrop-filter: blur(22px); backdrop-filter: blur(22px); }
+
+@media (prefers-reduced-motion: no-preference) {
+  /* Открытие дольше: карточки выходят с бо́льшим шагом, внутри сначала бежит «загрузка», потом проявляются данные */
+  .page.play [data-anim] { animation: deal 1.15s var(--ease) backwards; animation-delay: calc(min(var(--i, 0), 10) * var(--stg) + 60ms); }
+  .page.play :is(.card, .dark-card)[data-anim] { animation: deal 1.15s var(--ease) backwards, shimmer 1.3s linear backwards; animation-delay: calc(min(var(--i, 0), 10) * var(--stg) + 60ms), calc(min(var(--i, 0), 10) * var(--stg) + 260ms); }
+  @keyframes deal {
+    from { opacity: 0; transform: perspective(1100px) translateY(70px) rotateX(16deg) scale(.92); filter: blur(14px); }
+    50% { opacity: 1; filter: blur(0); }
+    to { opacity: 1; transform: none; filter: none; }
+  }
+  @keyframes shimmer {
+    from { background-image: linear-gradient(105deg, transparent 35%, rgba(255,140,60,.16) 50%, transparent 65%); background-size: 260% 100%; background-position: 130% 0; }
+    to { background-image: linear-gradient(105deg, transparent 35%, rgba(255,140,60,.16) 50%, transparent 65%); background-size: 260% 100%; background-position: -130% 0; }
+  }
+  .page.play [data-anim] > :not(.tv):not(.coil) { animation: inner .75s var(--ease) backwards; animation-delay: calc(min(var(--i, 0), 10) * var(--stg) + 620ms); }
+  .page.play [data-anim] > :not(.tv):not(.coil):nth-child(2) { animation-delay: calc(min(var(--i, 0), 10) * var(--stg) + 760ms); }
+  .page.play [data-anim] > :not(.tv):not(.coil):nth-child(3) { animation-delay: calc(min(var(--i, 0), 10) * var(--stg) + 900ms); }
+  .page.play [data-anim] > :not(.tv):not(.coil):nth-child(n+4) { animation-delay: calc(min(var(--i, 0), 10) * var(--stg) + 1040ms); }
+  @keyframes inner { from { opacity: 0; transform: translateY(16px); filter: blur(6px); } to { opacity: 1; transform: none; filter: none; } }
+  .page.play .rate .bar i { animation-duration: 1.3s; animation-delay: 1.1s; }
+  .page.play .rate:nth-child(2) .bar i { animation-delay: 1.25s; }
+  .page.play .rate:nth-child(3) .bar i { animation-delay: 1.4s; }
+  .page.play .banner::after { animation-delay: 1.2s; animation-duration: 1.6s; }
+  /* Плитки, участники, оплаты и лента появляются по одной */
+  .page.play .member, .page.play .tile, .page.play .pay, .page.play .ev, .page.play .wd { animation: pop-in .6s var(--spring) backwards; }
+  .page.play :is(.member, .tile, .pay, .ev, .wd):nth-child(1) { animation-delay: 1.0s; }
+  .page.play :is(.member, .tile, .pay, .ev, .wd):nth-child(2) { animation-delay: 1.08s; }
+  .page.play :is(.member, .tile, .pay, .ev, .wd):nth-child(3) { animation-delay: 1.16s; }
+  .page.play :is(.member, .tile, .pay, .ev, .wd):nth-child(4) { animation-delay: 1.24s; }
+  .page.play :is(.member, .tile, .pay, .ev, .wd):nth-child(5) { animation-delay: 1.32s; }
+  .page.play :is(.member, .tile, .pay, .ev, .wd):nth-child(6) { animation-delay: 1.4s; }
+  .page.play :is(.member, .tile, .pay, .ev, .wd):nth-child(n+7) { animation-delay: 1.48s; }
+  @keyframes pop-in { from { opacity: 0; transform: translateY(14px) scale(.88); } to { opacity: 1; transform: none; } }
+  .page.play :is(.rbar, .ci-b, .fb-track) :is(i, u) { transition-delay: .9s; }
+}
+
+/* Наведение: объект заметно выделяется — растёт, наклоняется к курсору, соседи приглушаются */
+.card.lift, .pay, .ev, .tile, .member, .dark-card { transition: transform .5s var(--spring), box-shadow .4s var(--ease), opacity .35s var(--ease), filter .35s var(--ease); }
+.card.lift:hover { transform: perspective(1000px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translateY(-8px) scale(1.035); z-index: 5;
+  box-shadow: inset 0 1px 0 var(--glass-line), inset 0 0 0 1px var(--glass-line), 0 30px 60px -18px rgba(0,0,0,.45), 0 0 0 1px rgba(255,90,0,.25), 0 0 40px -8px rgba(255,90,0,.35); }
+.dark-card:hover { transform: translateY(-6px) scale(1.03); z-index: 5; }
+.pay:hover { transform: translateY(-6px) scale(1.06); z-index: 5; box-shadow: 0 20px 40px -14px rgba(0,0,0,.45), 0 0 30px -8px rgba(255,90,0,.4); }
+.ev:hover { transform: translateX(4px) scale(1.03); z-index: 5; box-shadow: 0 16px 30px -14px rgba(0,0,0,.45), 0 0 26px -10px rgba(255,90,0,.45); }
+.tile:hover { transform: translateY(-4px) scale(1.06); z-index: 2; background-color: var(--accent-soft); }
+.member:hover { transform: translateY(-3px) scale(1.07); }
+.member:hover .av { transform: scale(1.18) rotate(-6deg); box-shadow: 0 0 0 3px var(--card), 0 0 22px rgba(255,90,0,.55); }
+:is(.row2, .row3, .row4, .stack):has(> .card:hover) > .card:not(:hover),
+.feed:has(.ev:hover) .ev:not(:hover), .lastpays:has(.pay:hover) .pay:not(:hover) { opacity: .62; filter: saturate(.7) blur(.5px); }
+.pcol:hover .pfill { transform: scaleX(1.25); filter: brightness(1.15) drop-shadow(0 0 8px rgba(255,90,0,.6)); }
+.pcol .pfill { transition: opacity .25s var(--ease), filter .25s, transform .35s var(--spring); }
+.big, .tile b { transition: transform .45s var(--spring); transform-origin: 0 50%; }
+.card:hover > .big, .card:hover .split .big { transform: scale(1.05); }
+.icon-btn { transition: transform .35s var(--spring), background .2s; }
+.icon-btn:hover { transform: scale(1.15) rotate(-8deg); }
+@media (hover: none) { .card.lift:hover, .pay:hover, .ev:hover, .tile:hover, .member:hover, .dark-card:hover { transform: none; } }
 </style>
 </head>
 <body>
@@ -959,8 +1117,10 @@ a { color: inherit; }
   function countUp(node, to, fmt, suffixNode) {
     const put = v => { node.textContent = fmt(v); if (suffixNode) node.append(suffixNode); };
     if (REDUCED || !animateNums || !isFinite(to)) { put(to); return; }
-    const t0 = performance.now(), dur = 1100;
-    const step = now => { const k = Math.min(1, (now - t0) / dur); const e = 1 - Math.pow(1 - k, 4); put(to * e); if (k < 1) requestAnimationFrame(step); };
+    const host = node.closest('[data-anim]'), idx = host ? Math.min(10, parseFloat(getComputedStyle(host).getPropertyValue('--i')) || 0) : 0;
+    const wait = host && host.closest('.page.play') ? idx * 110 + 700 : 0;
+    let t0 = performance.now() + wait; const dur = 1700;
+    const step = now => { const k = Math.max(0, Math.min(1, (now - t0) / dur)); const e = 1 - Math.pow(1 - k, 4); put(to * e); if (k < 1) requestAnimationFrame(step); };
     put(0); requestAnimationFrame(step);
   }
   /* Телевизор: надпись летает и отскакивает от краёв экрана, на каждом ударе меняет цвет */
@@ -1143,7 +1303,7 @@ a { color: inherit; }
       const col = el('div', 'pcol'); col.tabIndex = 0;
       const track = el('div', 'ptrack'); const fill = el('div', 'pfill' + (d === top ? ' hi' : ''));
       fill.style.height = (d.cash ? Math.max(8, d.cash / max * 100) : 0) + '%';
-      if (!grown) { fill.classList.add('grow'); fill.style.animationDelay = (i * 25) + 'ms'; }
+      if (!grown) { fill.classList.add('grow'); fill.style.animationDelay = (1050 + i * 40) + 'ms'; }
       track.append(fill); col.append(track);
       const wd = WD[new Date(d.date + 'T12:00:00').getDay()];
       col.append(el('span', 'd', range === 'week' ? wd : (i % step === 0 || i === days.length - 1 ? String(Number(d.date.slice(8, 10))) : '')));
@@ -1674,7 +1834,7 @@ a { color: inherit; }
   function replay(pageEl) {
     pageEl.classList.remove('play'); void pageEl.offsetWidth; pageEl.classList.add('play');
   }
-  function go(page) {
+  function goNow(page) {
     current = page;
     document.querySelectorAll('.page').forEach(p => p.classList.toggle('on', p.id === 'page-' + page));
     document.querySelectorAll('.nav-btn[data-page]').forEach(b => {
@@ -2059,6 +2219,39 @@ a { color: inherit; }
     try { const c = JSON.parse(localStorage.getItem(CACHE_KEY) || 'null'); if (c && c.payments && c.plans && c.meta) applyData(c); } catch (e) {}
     refresh(false);
   });
+  /* ---------- динамика (27.10) ---------- */
+  /* Свечение за курсором: запоминаем, где мышь внутри карточки */
+  let glowRaf = 0, glowEv = null;
+  document.addEventListener('pointermove', e => {
+    if (e.pointerType !== 'mouse') return; glowEv = e;
+    if (glowRaf) return;
+    glowRaf = requestAnimationFrame(() => {
+      glowRaf = 0; const rs = document.documentElement.style; rs.setProperty('--px', (glowEv.clientX / innerWidth - .5).toFixed(3)); rs.setProperty('--py', (glowEv.clientY / innerHeight - .5).toFixed(3));
+      const c = glowEv.target.closest && glowEv.target.closest('.card, .pay, .ev, .dark-card'); if (!c) return;
+      const r = c.getBoundingClientRect(); c.style.setProperty('--mx', (glowEv.clientX - r.left) + 'px'); c.style.setProperty('--my', (glowEv.clientY - r.top) + 'px');
+      if (c.classList.contains('lift')) { c.style.setProperty('--rx', (((glowEv.clientY - r.top) / r.height - .5) * -5).toFixed(2) + 'deg'); c.style.setProperty('--ry', (((glowEv.clientX - r.left) / r.width - .5) * 5).toFixed(2) + 'deg'); }
+    });
+  }, { passive: true });
+  /* Переход между разделами: старый экран быстро уходит, новый выезжает каскадом */
+  let leaving = null;
+  function go(page) {
+    const old = document.querySelector('.page.on');
+    if (REDUCED || !old || old.id === 'page-' + page || !M) { if (leaving) { leaving.cancel(); leaving = null; } goNow(page); return; }
+    document.querySelectorAll('.nav-btn[data-page]').forEach(b => { if (b.dataset.page === page) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); });
+    moveInd();
+    if (leaving) leaving.cancel();
+    const a = old.animate([{ opacity: 1, transform: 'none', filter: 'none' }, { opacity: 0, transform: 'translateY(-14px) scale(.985)', filter: 'blur(6px)' }], { duration: 190, easing: 'cubic-bezier(.4, 0, 1, 1)', fill: 'forwards' });
+    leaving = a;
+    a.onfinish = () => { if (leaving !== a) return; leaving = null; goNow(page); a.cancel(); };
+  }
+  /* Лента и неделя: новые строки выезжают, а не появляются скачком */
+  const stagger = (box, dx, dy) => {
+    if (REDUCED) return;
+    [...box.children].forEach((n, i) => n.animate([{ opacity: 0, transform: 'translate(' + dx + 'px,' + dy + 'px)' }, { opacity: 1, transform: 'none' }], { duration: 420, delay: Math.min(i, 8) * 35, easing: 'cubic-bezier(.16, 1, .3, 1)', fill: 'backwards' }));
+  };
+  document.querySelectorAll('[data-feed]').forEach(b => b.addEventListener('click', () => stagger($('feed'), 0, 10)));
+  $('wk-prev').addEventListener('click', () => stagger($('week'), -18, 0));
+  $('wk-next').addEventListener('click', () => stagger($('week'), 18, 0));
 })();
 </script>
 </body>
