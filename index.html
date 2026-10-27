@@ -1818,7 +1818,6 @@ a { color: inherit; }
       ['Прогноз месяца', moneyShort(M.forecast), 'план ' + moneyShort(M.plan)],
       ['Нужно в день', moneyShort(M.need), 'чтобы закрыть план']
     ];
-    if (HANG) s.push(['Ждут ответа', String(HANG.length), HANG.length ? 'клиентов дольше 30 минут' : 'всем ответили']);
     if (best) s.push(['Лидер', best.name, moneyShort(best.cash)]);
     return s;
   }
