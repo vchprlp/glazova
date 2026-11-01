@@ -1854,6 +1854,7 @@ a { color: inherit; }
       if (!r.ok) throw new Error('база ответила ' + r.status);
       const j = await r.json();
       if (j.me) { renderMe(j.me); throw new MeMode(); }
+      if (j.role === 'marketing') { noAccess('Здесь скоро появится аналитика для маркетинга: каналы, эфиры, UTM-метки и возражения. Пока это всё есть в боте командами.'); throw new MeMode(); }
       return { sheets: j.sheets, synced_at: j.synced_at, hang: j.hang ?? null, pipe: j.pipe ?? null };
     }
     const { data: { session } } = await SB.auth.getSession();
@@ -1863,6 +1864,7 @@ a { color: inherit; }
     if (!r.ok) throw new Error('база ответила ' + r.status);
     const j = await r.json();
     if (j.me) { renderMe(j.me); throw new MeMode(); }
+    if (j.role === 'marketing') { noAccess('Здесь скоро появится аналитика для маркетинга: каналы, эфиры, UTM-метки и возражения. Пока это всё есть в боте командами.'); throw new MeMode(); }
     return { sheets: j.sheets, synced_at: j.synced_at, hang: j.hang ?? null, pipe: j.pipe ?? null };
   }
   async function loadBookXlsx() {
