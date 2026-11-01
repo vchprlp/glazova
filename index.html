@@ -8,6 +8,7 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Crect width=%2232%22 height=%2232%22 rx=%228%22 fill=%22%230A0A0A%22/%3E%3Cpath d=%22M9 25 16 7M16 25 23 7%22 stroke=%22%23fff%22 stroke-width=%223.4%22 stroke-linecap=%22round%22/%3E%3Ccircle cx=%2226%22 cy=%228%22 r=%222.6%22 fill=%22%23FF5A00%22/%3E%3C/svg%3E">
 <script>try{var t=localStorage.getItem('theme');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t}catch(e){}</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
 <style>
@@ -151,7 +152,7 @@ a { color: inherit; }
 .row3 { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 22px; }
 .stack { display: flex; flex-direction: column; gap: 22px; min-width: 0; }
 .row4 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 22px; }
-.row4 > .path { grid-column: 1 / -1; }
+.row4 > .path, .row4 > .srcs { grid-column: 1 / -1; }
 
 /* Конверсии */
 .path .card-h .small { margin-left: auto; }
@@ -810,7 +811,6 @@ a { color: inherit; }
 
           <div class="row4">
             <div class="card lift path" id="path" data-anim style="--i:7"></div>
-            <div class="card lift hang" id="hang" data-anim style="--i:8"></div>
             <div class="card lift srcs" id="srcs" data-anim style="--i:9"></div>
           </div>
         </div>
@@ -997,7 +997,7 @@ a { color: inherit; }
     new IntersectionObserver(es => { visible = es[0].isIntersecting; visible ? loop() : stop(); }).observe(scr);
     new ResizeObserver(measure).observe(scr);
     document.addEventListener('visibilitychange', () => { document.hidden ? stop() : loop(); });
-    setTimeout(() => $('tv').classList.remove('boot'), 1000);
+    setTimeout(() => { const t = $('tv'); if (t) t.classList.remove('boot'); }, 1000);
     loop();
     /* 6 секунд летает логотип, потом 4 секунды живая цифра */
     const info = $('tv-info'); let si = 0;
@@ -1665,12 +1665,11 @@ a { color: inherit; }
       ['Прогноз месяца', moneyShort(M.forecast), 'план ' + moneyShort(M.plan)],
       ['Нужно в день', moneyShort(M.need), 'чтобы закрыть план']
     ];
-    if (HANG) s.push(['Ждут ответа', String(HANG.length), HANG.length ? 'клиентов дольше 30 минут' : 'всем ответили']);
     if (best) s.push(['Лидер', best.name, moneyShort(best.cash)]);
     return s;
   }
 
-  function drawAll() { drawBanner(); drawTeam(); drawRate(); drawConv(); drawStats(); drawCountdown(); drawBest(); drawPath(); drawHang(); drawSrcs(); drawWeek(); drawLastPays(); drawFeed(); drawFoot(); }
+  function drawAll() { drawBanner(); drawTeam(); drawRate(); drawConv(); drawStats(); drawCountdown(); drawBest(); drawPath(); drawSrcs(); drawWeek(); drawLastPays(); drawFeed(); drawFoot(); }
 
   /* ---------- управление ---------- */
   function moveInd() {
@@ -1841,7 +1840,22 @@ a { color: inherit; }
   const SB_URL = 'https://shdqqhzkabivnmqutazh.supabase.co';
   const SB_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNoZHFxaHprYWJpdm5tcXV0YXpoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI4NzAwNTksImV4cCI6MjEwODQ0NjA1OX0.0MLUuaMJcP0N4mg1OYvkfNE-9vFb2KyPGnOIYP6OgCY';
   const SB = window.supabase.createClient(SB_URL, SB_ANON);
+  /* Открыт из бота в Telegram - входим без пароля: Telegram сам подтверждает, кто это */
+  const TG_INIT = (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData) || '';
+  if (TG_INIT) try { window.Telegram.WebApp.ready(); window.Telegram.WebApp.expand(); } catch (e) {}
+  function noAccess(msg) {
+    $('page-overview').replaceChildren(el('div', 'err', msg));
+  }
   async function loadBook() {
+    if (TG_INIT) {
+      const r = await fetch(SB_URL + '/functions/v1/dash-data', { headers: { 'X-TG-Init': TG_INIT, apikey: SB_ANON, Authorization: 'Bearer ' + SB_ANON }, cache: 'no-store' });
+      if (r.status === 401) { noAccess('Не получилось подтвердить вход через Telegram. Закрой дашборд и открой его заново из бота.'); throw new MeMode(); }
+      if (r.status === 403) { noAccess('У твоего Telegram пока нет доступа к дашборду. Напиши Славе.'); throw new MeMode(); }
+      if (!r.ok) throw new Error('база ответила ' + r.status);
+      const j = await r.json();
+      if (j.me) { renderMe(j.me); throw new MeMode(); }
+      return { sheets: j.sheets, synced_at: j.synced_at, hang: j.hang ?? null, pipe: j.pipe ?? null };
+    }
     const { data: { session } } = await SB.auth.getSession();
     if (!session) { showLogin(); throw new Error('нужно войти'); }
     const r = await fetch(SB_URL + '/functions/v1/dash-data', { headers: { Authorization: 'Bearer ' + session.access_token, apikey: SB_ANON }, cache: 'no-store' });
@@ -2087,6 +2101,7 @@ a { color: inherit; }
   });
 
   current = start;
+  if (TG_INIT) { refresh(false); } else
   SB.auth.getSession().then(({ data: { session } }) => {
     if (!session) { showLogin(); return; }
     $('logout-btn').hidden = false;
