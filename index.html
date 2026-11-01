@@ -638,27 +638,6 @@ a { color: inherit; }
 .st.work { background: var(--accent-soft); color: var(--accent-ink); }
 .ch-empty { padding: 48px 20px; text-align: center; color: var(--muted); }
 .st.think { background: rgba(124,108,255,.16); color: #9F94FF; }
-/* Эфиры */
-.wb-list { display: flex; gap: 12px; overflow-x: auto; scrollbar-width: none; padding: 2px 2px 6px; margin-bottom: 16px; }
-.wb-list::-webkit-scrollbar { display: none; }
-.wb-card { flex: none; min-width: 168px; text-align: left; border: 0; cursor: pointer; background: var(--card); color: var(--ink); border-radius: 18px; padding: 14px 16px; box-shadow: var(--shadow); transition: transform .25s var(--spring), background .2s; font: inherit; }
-.wb-card:hover { transform: translateY(-2px); }
-.wb-card b { display: block; font-size: 16px; font-weight: 600; letter-spacing: -0.02em; }
-.wb-card span { display: block; font-size: 12.5px; color: var(--muted); margin-top: 3px; }
-.wb-card[aria-pressed="true"] { background: var(--accent); color: #fff; }
-.wb-card[aria-pressed="true"] span { color: rgba(255,255,255,.8); }
-.wb-cmp { display: flex; flex-direction: column; gap: 14px; }
-.wb-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; }
-.wb-row .n { font-weight: 600; font-size: 14px; }
-.wb-row.me .n { color: var(--accent-ink); }
-.wb-row .c { font-size: 12.5px; color: var(--muted); white-space: nowrap; }
-.wb-row .track { grid-column: 1 / -1; height: 10px; border-radius: 5px; background: var(--track); overflow: hidden; }
-.wb-row .track i { display: block; height: 100%; border-radius: 5px; background: var(--peach-2); transition: width .8s var(--ease); }
-.wb-row.me .track i { background: var(--accent); }
-.wb-notes { display: flex; flex-direction: column; gap: 10px; max-height: 380px; overflow: auto; }
-.wb-note { background: var(--track); border-radius: 14px; padding: 10px 12px; font-size: 13.5px; line-height: 1.45; }
-.wb-note small { display: block; color: var(--muted); font-size: 12px; margin-top: 4px; }
-.wb-verdict { font-size: 14px; line-height: 1.5; color: var(--ink-2); margin: 14px 0 0; }
 @media (max-width: 1100px) { .ch-grid { grid-template-columns: minmax(0, 1fr); } .ch-kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 @media (max-width: 640px) { .ch-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } .ch-tools .obj-search, .ch-tools .obj-search input { width: 100%; } }
 .tbl { width: 100%; border-collapse: collapse; min-width: 640px; font-variant-numeric: tabular-nums; }
@@ -813,7 +792,6 @@ a { color: inherit; }
       <button class="nav-btn" data-page="payments" aria-label="Оплаты"><svg class="ico" viewBox="0 0 24 24"><rect x="3.5" y="6" width="17" height="12.5" rx="3"/><path d="M3.5 10.5h17M7.5 15h3"/></svg><span class="tip">Оплаты</span></button>
       <button class="nav-btn" data-page="objections" aria-label="Возражения"><svg class="ico" viewBox="0 0 24 24"><path d="M5.5 4.5h13a2 2 0 0 1 2 2v8.5a2 2 0 0 1-2 2H11l-4.5 3.5V17h-1a2 2 0 0 1-2-2V6.5a2 2 0 0 1 2-2z"/><path d="M8.5 9.5h7M8.5 12.5h4.5"/></svg><span class="tip">Возражения</span></button>
       <button class="nav-btn" data-page="channels" aria-label="Каналы"><svg class="ico" viewBox="0 0 24 24"><path d="M4 19.5V13M9.3 19.5V8.5M14.7 19.5V11M20 19.5V4.5"/></svg><span class="tip">Каналы</span></button>
-      <button class="nav-btn" data-page="webinars" aria-label="Эфиры"><svg class="ico" viewBox="0 0 24 24"><rect x="3.5" y="6" width="12.5" height="12" rx="3"/><path d="M16 10.5l4.5-2.5v8l-4.5-2.5"/></svg><span class="tip">Эфиры</span></button>
       <button class="nav-btn" data-page="funnel" aria-label="Воронка"><svg class="ico" viewBox="0 0 24 24"><path d="M4 5h16l-6 7.5V19l-4-2v-4.5z"/></svg><span class="tip">Воронка</span></button>
     </nav>
     <div class="bottom">
@@ -976,13 +954,6 @@ a { color: inherit; }
         <div class="seg" id="ch-mode" role="group" aria-label="Группировка"><button type="button" data-m="ch" aria-pressed="true">По каналам</button><button type="button" data-m="msg">По сообщениям</button></div>
       </div>
       <div id="ch-body"></div>
-    </section>
-    <section class="page" id="page-webinars" aria-label="Эфиры">
-      <div class="ph" data-anim style="--i:0">
-        <div><h1>Эфиры</h1><p id="wb-sub">Эфиры находятся сами: по клиентам, которые написали «я с эфира»</p></div>
-      </div>
-      <div class="wb-list" id="wb-list" data-anim style="--i:1"></div>
-      <div id="wb-body"></div>
     </section>
     <section class="page" id="page-funnel" aria-label="Воронка">
       <div class="ph" data-anim style="--i:0"><div><h1>Воронка</h1><p id="fn-sub"></p></div></div>
@@ -1784,7 +1755,6 @@ a { color: inherit; }
     if (location.hash.slice(1) !== page) history.replaceState(null, '', '#' + page);
     window.scrollTo({ top: 0, behavior: 'instant' });
     if (page === 'channels') drawChannels();
-    if (page === 'webinars') drawWebinars();
     if (M) { grown = false; animateNums = true; if (page === 'overview') drawAll(); if (page === 'managers') drawManagers(); if (page === 'payments') drawPayments(); if (page === 'funnel') drawFunnel(); if (page === 'objections') drawObjections(); }
     replay($('page-' + page));
   }
@@ -1803,7 +1773,7 @@ a { color: inherit; }
   $('wk-next').addEventListener('click', () => { weekStart.setDate(weekStart.getDate() + 7); drawWeek(); });
   let rz; addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { moveInd(); if (M && current === 'overview') { animateNums = false; grown = true; drawStats(); } }, 150); });
 
-  const start = ['overview', 'managers', 'payments', 'objections', 'channels', 'webinars', 'funnel'].includes(location.hash.slice(1)) ? location.hash.slice(1) : 'overview';
+  const start = ['overview', 'managers', 'payments', 'objections', 'channels', 'funnel'].includes(location.hash.slice(1)) ? location.hash.slice(1) : 'overview';
   $('side').classList.add('intro');
   $('side').querySelectorAll('.logo, .nav-btn').forEach((n, i) => n.style.setProperty('--i', String(i)));
   document.querySelectorAll('.page').forEach(p => p.classList.toggle('on', p.id === 'page-' + start));
@@ -1811,7 +1781,6 @@ a { color: inherit; }
   document.querySelectorAll('.nav-btn[data-page]').forEach(b => { if (b.dataset.page !== start) b.removeAttribute('aria-current'); });
   moveInd();
   if (start === 'channels') setTimeout(() => drawChannels(), 0);
-  if (start === 'webinars') setTimeout(() => drawWebinars(), 0);
 
   /* тема: выбор запоминается в браузере; если не выбирал, берём системную */
   const root = document.documentElement;
@@ -2103,113 +2072,13 @@ a { color: inherit; }
     document.querySelectorAll('#ch-mode button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
     if (CH.data) renderChannels();
   }));
-  /* ---------- Эфиры ---------- */
-  const WB = { id: null, data: null, busy: false };
-  const WB_DAYS = ['вс', 'пн', 'вт', 'ср', 'чт', 'пт', 'сб'];
-  const mskIso = ms => new Date(ms + MSK).toISOString();
-  const wbLabel = ms => { const i = mskIso(ms); return dlabel(i.slice(0, 10)) + ', ' + WB_DAYS[new Date(i.slice(0, 10) + 'T12:00:00Z').getUTCDay()]; };
-  const rubS = n => n >= 1e6 ? (Math.round(n / 1e4) / 100).toString().replace('.', ',') + ' млн ₽' : Math.round(n / 1000) + ' тыс ₽';
-  async function drawWebinars() {
-    if (WB.data && (!WB.id || WB.data.w?.id === WB.id)) { renderWebinars(); return; }
-    if (WB.busy) return;
-    WB.busy = true;
-    $('wb-body').replaceChildren(el('div', 'ch-empty', 'Собираю лидов эфира и сверяю с amoCRM… это до минуты'));
-    try {
-      const r = await fetch(SB_URL + '/functions/v1/dash-data?view=webinars' + (WB.id ? '&id=' + encodeURIComponent(WB.id) : ''), { headers: await authHeaders(), cache: 'no-store' });
-      if (!r.ok) throw new Error('база ответила ' + r.status);
-      WB.data = await r.json(); WB.busy = false;
-      if (WB.id && WB.data.w && WB.data.w.id !== WB.id) return drawWebinars();
-      renderWebinars();
-    } catch (e) { WB.busy = false; $('wb-body').replaceChildren(el('div', 'err', 'Не получилось загрузить эфиры (' + e.message + '). Попробуй ещё раз.')); }
-  }
-  function renderWebinars() {
-    const D = WB.data, list = $('wb-list'), body = $('wb-body');
-    list.replaceChildren(); body.replaceChildren();
-    if (!D.w) { body.append(el('div', 'card ch-empty', 'Эфиров пока не нашлось. Как только после эфира напишут хотя бы 5 человек со словом «эфир», он появится здесь.')); return; }
-    [...D.list].reverse().forEach(x => {
-      const b = el('button', 'wb-card'); b.type = 'button'; b.setAttribute('aria-pressed', String(x.id === D.w.id));
-      b.append(el('b', null, wbLabel(x.start)), el('span', null, x.leads + ' ' + plural(x.leads, 'лид', 'лида', 'лидов')));
-      b.addEventListener('click', () => { if (x.id === D.w.id) return; WB.id = x.id; drawWebinars(); });
-      list.append(b);
-    });
-    const R = D.w.rows, money = !!D.money;
-    $('wb-sub').textContent = 'Эфир ' + wbLabel(D.w.start) + ' · лиды до ' + wbLabel(D.w.end) + ' · кто написал «эфир» в первом сообщении';
-    const c = k => R.filter(r => r.st === k).length;
-    const n = R.length, held = R.filter(r => r.held).length, paid = c('paid');
-    const sum = money ? R.reduce((a, r) => a + (r.sum || 0), 0) : 0;
-    const k = el('div', 'ch-kpis');
-    const tiles = [[n, 'лидов', 'написали после эфира'], [held, 'встреч проведено', pcs(held, n) + ' от лидов'], [paid, 'оплат', pcs(paid, n) + ' от лидов']];
-    if (money) tiles.push([rubS(sum), 'выручка', paid ? 'средний чек ' + rubS(sum / paid) : 'оплат пока нет'], [rubS(n ? sum / n : 0), 'на одного лида', 'выручка / лиды']);
-    else tiles.push([c('think'), 'думают', 'после встречи'], [c('refused') + c('ignore'), 'отказ и игнор', c('refused') + ' отказ · ' + c('ignore') + ' игнор']);
-    tiles.forEach(([v, l, s]) => { const x = el('div', 'card'); x.append(el('div', 'v num', String(v)), el('div', 'l', l), el('div', 's', s)); k.append(x); });
-    body.append(k);
-    // сравнение с каналами
-    const grid = el('div', 'ch-grid');
-    const c1 = el('div', 'card'); const h1 = el('div', 'card-h'); h1.append(el('h2', null, 'Эфир против других каналов'), el('span', 'small', money ? 'выручка на лида' : 'лид → оплата')); c1.append(h1);
-    const me = { ch: 'Этот эфир', n, paid, sum, me: true };
-    const all = [me, ...D.w.cmp.filter(x => x.n >= 3)];
-    const metric = x => money ? (x.n ? x.sum / x.n : 0) : (x.n ? x.paid / x.n : 0);
-    const mx = Math.max(1e-9, ...all.map(metric));
-    const box = el('div', 'wb-cmp');
-    all.sort((a, b) => metric(b) - metric(a)).forEach(x => {
-      const row = el('div', 'wb-row' + (x.me ? ' me' : '')); const tr = el('div', 'track'); const i = el('i'); tr.append(i);
-      row.append(el('div', 'n', x.ch), el('div', 'c', x.n + ' лид. · ' + x.paid + ' опл. (' + pcs(x.paid, x.n) + ')' + (money ? ' · ' + rubS(x.n ? x.sum / x.n : 0) + ' на лида' : '')), tr);
-      requestAnimationFrame(() => { i.style.width = (metric(x) / mx * 100) + '%'; });
-      box.append(row);
-    });
-    c1.append(box);
-    const others = D.w.cmp.reduce((a, x) => ({ n: a.n + x.n, paid: a.paid + x.paid, sum: a.sum + (x.sum || 0) }), { n: 0, paid: 0, sum: 0 });
-    if (others.n) {
-      const cvW = n ? paid / n : 0, cvO = others.paid / others.n;
-      const txt = cvW > cvO * 1.15 ? 'Лид с эфира покупает лучше: ' + pcs(paid, n) + ' против ' + pcs(others.paid, others.n) + ' у остальных каналов за те же дни.'
-        : cvW < cvO * 0.85 ? 'Лид с эфира покупает хуже: ' + pcs(paid, n) + ' против ' + pcs(others.paid, others.n) + ' у остальных каналов за те же дни.'
-        : 'Лид с эфира покупает примерно как остальные: ' + pcs(paid, n) + ' против ' + pcs(others.paid, others.n) + '.';
-      c1.append(el('p', 'wb-verdict', txt + ' Сделки ещё закрываются, цифры будут расти.'));
-    }
-    // по дням
-    const c2 = el('div', 'card'); const h2 = el('div', 'card-h'); h2.append(el('h2', null, 'Когда писали'), el('span', 'small', 'лиды по дням')); c2.append(h2);
-    const cnt = {}; R.forEach(r => { cnt[r.day] = (cnt[r.day] || 0) + 1; });
-    const days = Object.keys(cnt).sort(); const dm = Math.max(1, ...Object.values(cnt));
-    const dw = el('div', 'ch-days');
-    days.forEach(d => { const col = el('div', 'd'); const bar = el('b'); col.title = dShort(d) + ': ' + cnt[d]; col.append(el('em', null, String(cnt[d])), bar, el('span', null, dShort(d))); requestAnimationFrame(() => { bar.style.height = (cnt[d] / dm * 100) + '%'; }); dw.append(col); });
-    c2.append(dw);
-    grid.append(c1, c2); body.append(grid);
-    // возражения и примечания
-    const g2 = el('div', 'ch-grid');
-    const notes = (title, items, empty) => {
-      const cc = el('div', 'card'); const hh = el('div', 'card-h'); hh.append(el('h2', null, title), el('span', 'small', items.length + ' шт.')); cc.append(hh);
-      const w = el('div', 'wb-notes');
-      if (!items.length) w.append(el('p', 'small', empty));
-      items.forEach(([t, who]) => { const x = el('div', 'wb-note'); x.append(document.createTextNode(t), el('small', null, who)); w.append(x); });
-      cc.append(w); return cc;
-    };
-    const ST = { paid: 'купил', refused: 'отказ', ignore: 'игнор', work: 'в работе', think: 'думает' };
-    g2.append(notes('Возражения', R.filter(r => r.obj && r.st !== 'paid').map(r => [r.obj, (r.mgr || '') + ' · ' + ST[r.st]]), 'Возражений пока не записали'),
-      notes('Примечания менеджеров', R.filter(r => r.note).map(r => [r.note, (r.mgr || '') + ' · ' + ST[r.st]]), 'Примечаний пока нет'));
-    body.append(g2);
-    // лиды
-    const c4 = el('div', 'card');
-    const h4 = el('div', 'card-h'); h4.append(el('h2', null, 'Лиды эфира'), el('span', 'small', n + ' шт.')); c4.append(h4);
-    const lw = el('div', 'ch-leads'), lt = el('table', 'tbl'), lh = el('thead'), lhr = el('tr');
-    ['Дата', 'Клиент', 'Менеджер', 'Первое сообщение', 'Встреча', ...(money ? ['Сумма'] : []), 'Итог'].forEach(t => lhr.append(el('th', null, t)));
-    lh.append(lhr); lt.append(lh);
-    const lb = el('tbody');
-    const order = { paid: 0, think: 1, work: 2, refused: 3, ignore: 4 };
-    [...R].sort((a, b) => order[a.st] - order[b.st] || a.day.localeCompare(b.day)).forEach(r => {
-      const tr = el('tr'); const tdS = el('td'); tdS.append(el('span', 'st ' + r.st, ST[r.st]));
-      tr.append(el('td', null, dShort(r.day)), el('td', null, r.name + (r.nick ? ' @' + r.nick : '')), el('td', null, r.mgr || '—'), el('td', 'msg', r.msg || '—'), el('td', null, r.held ? 'да' : ''));
-      if (money) tr.append(el('td', null, r.sum ? rub(r.sum) + ' ₽' : ''));
-      tr.append(tdS); lb.append(tr);
-    });
-    lt.append(lb); lw.append(lt); c4.append(lw); body.append(c4);
-  }
   /* маркетинг видит только свои вкладки - без цифр продаж */
   function marketingMode() {
     ROLE = 'marketing';
-    document.querySelectorAll('.side .nav-btn[data-page]').forEach(b => { b.style.display = ['channels', 'webinars'].includes(b.dataset.page) ? '' : 'none'; });
+    document.querySelectorAll('.side .nav-btn[data-page]').forEach(b => { b.style.display = ['channels'].includes(b.dataset.page) ? '' : 'none'; });
     document.querySelectorAll('a[href*="docs.google.com/spreadsheets"]').forEach(a => { a.style.display = 'none'; });
     $('sync-btn').style.display = 'none';
-    if (!['channels', 'webinars'].includes(current)) go('channels'); else go(current);
+    if (current !== 'channels') go('channels'); else drawChannels();
   }
   async function loadBook() {
     if (TG_INIT) {
