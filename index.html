@@ -590,6 +590,55 @@ a { color: inherit; }
 .fb-key { display: flex; gap: 16px; flex-wrap: wrap; font-size: 12px; color: var(--muted); margin-top: 12px; }
 .fb-key span { display: inline-flex; align-items: center; gap: 6px; }
 .tbl-wrap { overflow-x: auto; }
+/* Каналы */
+.ch-tools { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 18px; }
+.ch-tools .seg { max-width: 100%; overflow-x: auto; scrollbar-width: none; }
+.ch-tools .seg button { flex: none; }
+.ch-dates { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); }
+.ch-dates input { height: 38px; border: 0; border-radius: var(--r-pill); padding: 0 12px; background: var(--card); color: var(--ink); box-shadow: var(--shadow); font: inherit; font-size: 13px; color-scheme: light dark; }
+.ch-kpis { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px; margin-bottom: 18px; }
+.ch-kpis .card { padding: 18px; }
+.ch-kpis .v { font-size: 30px; font-weight: 500; letter-spacing: -0.04em; line-height: 1.1; }
+.ch-kpis .l { font-size: 13px; color: var(--ink-2); margin-top: 2px; }
+.ch-kpis .s { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.ch-grid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 18px; margin-bottom: 18px; }
+.ch-bars { display: flex; flex-direction: column; gap: 14px; }
+.ch-bar { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; cursor: pointer; border-radius: 12px; padding: 6px 8px; margin: -6px -8px; transition: background .2s; }
+.ch-bar:hover, .ch-bar.sel { background: var(--track); }
+.ch-bar .n { font-weight: 600; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ch-bar .c { font-size: 12.5px; color: var(--muted); white-space: nowrap; }
+.ch-bar .track { grid-column: 1 / -1; position: relative; height: 10px; border-radius: 5px; background: var(--track); overflow: hidden; }
+.ch-bar .track i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 5px; transition: width .8s var(--ease); }
+.ch-bar .track i.a { background: var(--peach-2); }
+.ch-bar .track i.b { background: var(--accent); }
+.ch-bar .track i.p { background: var(--good); }
+.ch-key { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px; color: var(--muted); margin-top: 16px; }
+.ch-key i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; vertical-align: 0; }
+.ch-days { display: flex; align-items: flex-end; gap: 3px; height: 190px; padding-top: 22px; }
+.ch-days .d { flex: 1; min-width: 4px; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; height: 100%; position: relative; }
+.ch-days .d b { width: 100%; max-width: 26px; border-radius: 6px 6px 3px 3px; background: var(--accent); min-height: 2px; transition: height .7s var(--ease); }
+.ch-days .d em { position: absolute; top: -18px; font-style: normal; font-size: 11px; color: var(--ink-2); opacity: 0; transition: opacity .2s; white-space: nowrap; }
+.ch-days .d:hover em { opacity: 1; }
+.ch-days .d span { font-size: 10.5px; color: var(--muted); margin-top: 6px; height: 13px; }
+.tbl th.sort { cursor: pointer; user-select: none; }
+.tbl th.sort:hover { color: var(--ink); }
+.tbl th.on { color: var(--accent-ink); }
+.tbl tr.sel td { background: var(--accent-soft); }
+.ch-pct { color: var(--muted); font-size: 12px; margin-left: 4px; }
+.ch-leads { max-height: 520px; overflow: auto; }
+.ch-leads .tbl { min-width: 720px; }
+.ch-dates[hidden] { display: none; }
+.ch-leads th, .ch-leads td { text-align: left !important; }
+.ch-leads th:last-child, .ch-leads td:last-child { text-align: right !important; }
+.ch-leads td.msg { white-space: normal; text-align: left; color: var(--ink-2); min-width: 280px; }
+.st { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 11.5px; font-weight: 600; }
+.st.paid { background: var(--good-bg); color: var(--good); }
+.st.refused { background: var(--bad-bg); color: var(--bad); }
+.st.ignore { background: var(--track); color: var(--muted); }
+.st.work { background: var(--accent-soft); color: var(--accent-ink); }
+.ch-empty { padding: 48px 20px; text-align: center; color: var(--muted); }
+@media (max-width: 1100px) { .ch-grid { grid-template-columns: minmax(0, 1fr); } .ch-kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 640px) { .ch-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } .ch-tools .obj-search, .ch-tools .obj-search input { width: 100%; } }
 .tbl { width: 100%; border-collapse: collapse; min-width: 640px; font-variant-numeric: tabular-nums; }
 .tbl th { text-align: right; font-size: 12px; font-weight: 500; color: var(--muted); padding: 0 10px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; }
 .tbl th:first-child, .tbl td:first-child { text-align: left; }
@@ -741,6 +790,7 @@ a { color: inherit; }
       <button class="nav-btn" data-page="managers" aria-label="Менеджеры"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 20c.8-3.8 3.8-6 7.5-6s6.7 2.2 7.5 6"/></svg><span class="tip">Менеджеры</span></button>
       <button class="nav-btn" data-page="payments" aria-label="Оплаты"><svg class="ico" viewBox="0 0 24 24"><rect x="3.5" y="6" width="17" height="12.5" rx="3"/><path d="M3.5 10.5h17M7.5 15h3"/></svg><span class="tip">Оплаты</span></button>
       <button class="nav-btn" data-page="objections" aria-label="Возражения"><svg class="ico" viewBox="0 0 24 24"><path d="M5.5 4.5h13a2 2 0 0 1 2 2v8.5a2 2 0 0 1-2 2H11l-4.5 3.5V17h-1a2 2 0 0 1-2-2V6.5a2 2 0 0 1 2-2z"/><path d="M8.5 9.5h7M8.5 12.5h4.5"/></svg><span class="tip">Возражения</span></button>
+      <button class="nav-btn" data-page="channels" aria-label="Каналы"><svg class="ico" viewBox="0 0 24 24"><path d="M4 19.5V13M9.3 19.5V8.5M14.7 19.5V11M20 19.5V4.5"/></svg><span class="tip">Каналы</span></button>
       <button class="nav-btn" data-page="funnel" aria-label="Воронка"><svg class="ico" viewBox="0 0 24 24"><path d="M4 5h16l-6 7.5V19l-4-2v-4.5z"/></svg><span class="tip">Воронка</span></button>
     </nav>
     <div class="bottom">
@@ -889,6 +939,20 @@ a { color: inherit; }
         </div>
       </div>
       <div id="obj-list" class="obj-list"></div>
+    </section>
+    <section class="page" id="page-channels" aria-label="Каналы">
+      <div class="ph" data-anim style="--i:0">
+        <div><h1>Каналы</h1><p id="ch-sub">Откуда приходят лиды и что с ними происходит дальше</p></div>
+      </div>
+      <div class="ch-tools" data-anim style="--i:1">
+        <div class="seg" id="ch-preset" role="group" aria-label="Период">
+          <button type="button" data-p="today">Сегодня</button><button type="button" data-p="7">7 дней</button><button type="button" data-p="month" aria-pressed="true">Этот месяц</button><button type="button" data-p="prev">Прошлый месяц</button><button type="button" data-p="custom">Свои даты</button>
+        </div>
+        <div class="ch-dates" id="ch-dates" hidden><input type="date" id="ch-from" aria-label="С"><span>—</span><input type="date" id="ch-to" aria-label="По"></div>
+        <label class="obj-search"><svg class="ico" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4 4"/></svg><input type="search" id="ch-q" placeholder="Слово из первого сообщения" aria-label="Слово из первого сообщения"></label>
+        <div class="seg" id="ch-mode" role="group" aria-label="Группировка"><button type="button" data-m="ch" aria-pressed="true">По каналам</button><button type="button" data-m="msg">По сообщениям</button></div>
+      </div>
+      <div id="ch-body"></div>
     </section>
     <section class="page" id="page-funnel" aria-label="Воронка">
       <div class="ph" data-anim style="--i:0"><div><h1>Воронка</h1><p id="fn-sub"></p></div></div>
@@ -1689,6 +1753,7 @@ a { color: inherit; }
     moveInd();
     if (location.hash.slice(1) !== page) history.replaceState(null, '', '#' + page);
     window.scrollTo({ top: 0, behavior: 'instant' });
+    if (page === 'channels') drawChannels();
     if (M) { grown = false; animateNums = true; if (page === 'overview') drawAll(); if (page === 'managers') drawManagers(); if (page === 'payments') drawPayments(); if (page === 'funnel') drawFunnel(); if (page === 'objections') drawObjections(); }
     replay($('page-' + page));
   }
@@ -1707,7 +1772,7 @@ a { color: inherit; }
   $('wk-next').addEventListener('click', () => { weekStart.setDate(weekStart.getDate() + 7); drawWeek(); });
   let rz; addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { moveInd(); if (M && current === 'overview') { animateNums = false; grown = true; drawStats(); } }, 150); });
 
-  const start = ['overview', 'managers', 'payments', 'objections', 'funnel'].includes(location.hash.slice(1)) ? location.hash.slice(1) : 'overview';
+  const start = ['overview', 'managers', 'payments', 'objections', 'channels', 'funnel'].includes(location.hash.slice(1)) ? location.hash.slice(1) : 'overview';
   $('side').classList.add('intro');
   $('side').querySelectorAll('.logo, .nav-btn').forEach((n, i) => n.style.setProperty('--i', String(i)));
   document.querySelectorAll('.page').forEach(p => p.classList.toggle('on', p.id === 'page-' + start));
@@ -1843,8 +1908,175 @@ a { color: inherit; }
   /* Открыт из бота в Telegram - входим без пароля: Telegram сам подтверждает, кто это */
   const TG_INIT = (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData) || '';
   if (TG_INIT) try { window.Telegram.WebApp.ready(); window.Telegram.WebApp.expand(); } catch (e) {}
+  let ROLE = null;
   function noAccess(msg) {
     $('page-overview').replaceChildren(el('div', 'err', msg));
+    document.querySelectorAll('.side .nav-btn, .side a').forEach(b => { b.style.display = 'none'; });
+  }
+  async function authHeaders() {
+    if (TG_INIT) return { 'X-TG-Init': TG_INIT, apikey: SB_ANON, Authorization: 'Bearer ' + SB_ANON };
+    const { data: { session } } = await SB.auth.getSession();
+    if (!session) { showLogin(); throw new Error('нужно войти'); }
+    return { Authorization: 'Bearer ' + session.access_token, apikey: SB_ANON };
+  }
+  /* ---------- Каналы: лиды по каналам и стартовым сообщениям (как /channels в боте) ---------- */
+  const CH = { preset: 'month', from: null, to: null, q: '', mode: 'ch', sort: 'n', sel: null, data: null, key: '', busy: false };
+  const mskToday = () => new Date(Date.now() + MSK).toISOString().slice(0, 10);
+  function chRange() {
+    const t = mskToday(), d = new Date(t + 'T12:00:00Z');
+    const shift = n => { const x = new Date(d); x.setUTCDate(x.getUTCDate() + n); return x.toISOString().slice(0, 10); };
+    if (CH.preset === 'today') return [t, t];
+    if (CH.preset === '7') return [shift(-6), t];
+    if (CH.preset === 'prev') { const x = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 0)); const e = x.toISOString().slice(0, 10); return [e.slice(0, 8) + '01', e]; }
+    if (CH.preset === 'custom' && CH.from && CH.to) return CH.from <= CH.to ? [CH.from, CH.to] : [CH.to, CH.from];
+    return [t.slice(0, 8) + '01', t];
+  }
+  const dShort = iso => iso.slice(8, 10) + '.' + iso.slice(5, 7);
+  const pcs = (a, b) => b ? (Math.round(a / b * 1000) / 10).toString().replace('.', ',') + '%' : '–';
+  async function drawChannels(force) {
+    const body = $('ch-body');
+    const [a, b] = chRange(), key = a + '|' + b + '|' + CH.q;
+    if (CH.preset === 'custom') { $('ch-from').value = a; $('ch-to').value = b; }
+    $('ch-sub').textContent = 'Лиды с ' + dlabel(a) + (a === b ? '' : ' по ' + dlabel(b)) + (CH.q ? ' · в первом сообщении «' + CH.q + '»' : '') + ' · что с ними стало дальше';
+    if (CH.data && CH.key === key && !force) { renderChannels(); return; }
+    if (CH.busy) return;
+    CH.busy = true;
+    if (!CH.data || CH.key !== key) body.replaceChildren(el('div', 'ch-empty', 'Собираю лидов…'));
+    try {
+      const r = await fetch(SB_URL + '/functions/v1/dash-data?view=channels&from=' + a + '&to=' + b + '&q=' + encodeURIComponent(CH.q), { headers: await authHeaders(), cache: 'no-store' });
+      if (!r.ok) throw new Error('база ответила ' + r.status);
+      CH.data = await r.json(); CH.key = key; CH.sel = null;
+      CH.busy = false;
+      if (CH.key !== chRange().join('|') + '|' + CH.q) return drawChannels();
+      renderChannels();
+    } catch (e) { CH.busy = false; body.replaceChildren(el('div', 'err', 'Не получилось загрузить каналы (' + e.message + '). Попробуй ещё раз.')); }
+  }
+  function chGroups(rows) {
+    const by = {};
+    rows.forEach(r => {
+      const k = CH.mode === 'msg' ? r.ch + ' · ' + r.fmt : r.ch;
+      const g = by[k] || (by[k] = { k, n: 0, held: 0, paid: 0, refused: 0, ignore: 0, work: 0 });
+      g.n++; if (r.held) g.held++; g[r.st]++;
+    });
+    return Object.values(by);
+  }
+  function renderChannels() {
+    const body = $('ch-body'), rows = CH.data.rows || [];
+    body.replaceChildren();
+    if (!rows.length) { body.append(el('div', 'card ch-empty', 'За этот период лидов нет' + (CH.q ? ' со словами «' + CH.q + '»' : ''))); return; }
+    const T = rows.reduce((t, r) => { t.n++; if (r.held) t.held++; t[r.st]++; return t; }, { n: 0, held: 0, paid: 0, refused: 0, ignore: 0, work: 0 });
+    // плитки
+    const k = el('div', 'ch-kpis');
+    [[T.n, 'лидов', 'за выбранный период'], [T.held, 'встреч проведено', pcs(T.held, T.n) + ' от лидов'], [T.paid, 'оплат', pcs(T.paid, T.n) + ' от лидов'],
+     [T.refused, 'отказались', pcs(T.refused, T.n) + ' от лидов'], [T.ignore, 'в игноре', pcs(T.ignore, T.n) + ' от лидов']].forEach(([v, l, s]) => {
+      const c = el('div', 'card'); c.append(el('div', 'v num', String(v)), el('div', 'l', l), el('div', 's', s)); k.append(c);
+    });
+    body.append(k);
+    const groups = chGroups(rows).sort((x, y) => y.n - x.n);
+    const max = Math.max(...groups.map(g => g.n));
+    // полоски по каналам
+    const grid = el('div', 'ch-grid');
+    const c1 = el('div', 'card'); const h1 = el('div', 'card-h'); h1.append(el('h2', null, CH.mode === 'msg' ? 'Каналы и сообщения' : 'Каналы'), el('span', 'small', 'нажми, чтобы увидеть лидов')); c1.append(h1);
+    const bars = el('div', 'ch-bars');
+    groups.forEach(g => {
+      const r = el('div', 'ch-bar' + (CH.sel === g.k ? ' sel' : '')); r.tabIndex = 0;
+      const tr = el('div', 'track');
+      const ia = el('i', 'a'), ib = el('i', 'b'), ip = el('i', 'p');
+      tr.append(ia, ib, ip);
+      r.append(el('div', 'n', g.k), el('div', 'c', g.n + ' лид. · ' + g.held + ' встр. · ' + g.paid + ' опл. (' + pcs(g.paid, g.n) + ')'), tr);
+      requestAnimationFrame(() => { ia.style.width = (g.n / max * 100) + '%'; ib.style.width = (g.held / max * 100) + '%'; ip.style.width = (g.paid / max * 100) + '%'; });
+      const pick = () => { CH.sel = CH.sel === g.k ? null : g.k; renderChannels(); };
+      r.addEventListener('click', pick); r.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(); } });
+      bars.append(r);
+    });
+    const key = el('div', 'ch-key');
+    [['var(--peach-2)', 'лиды'], ['var(--accent)', 'встречи'], ['var(--good)', 'оплаты']].forEach(([c, t]) => { const s = el('span'); const i = el('i'); i.style.background = c; s.append(i, document.createTextNode(t)); key.append(s); });
+    c1.append(bars, key);
+    // лиды по дням
+    const c2 = el('div', 'card'); const h2 = el('div', 'card-h'); h2.append(el('h2', null, 'Лиды по дням'), el('span', 'small', CH.sel ? CH.sel : 'все каналы')); c2.append(h2);
+    const [a, b] = [CH.data.from, CH.data.to];
+    const days = []; for (let d = new Date(a + 'T12:00:00Z'); d.toISOString().slice(0, 10) <= b; d.setUTCDate(d.getUTCDate() + 1)) days.push(d.toISOString().slice(0, 10));
+    const inSel = r => !CH.sel || (CH.mode === 'msg' ? r.ch + ' · ' + r.fmt : r.ch) === CH.sel;
+    const cnt = {}; rows.filter(inSel).forEach(r => { cnt[r.day] = (cnt[r.day] || 0) + 1; });
+    const dm = Math.max(1, ...days.map(d => cnt[d] || 0));
+    const dw = el('div', 'ch-days');
+    const every = Math.ceil(days.length / 10);
+    days.forEach((d, i) => {
+      const col = el('div', 'd'); const bar = el('b'); const n = cnt[d] || 0;
+      col.title = dShort(d) + ': ' + n + ' лид.';
+      col.append(el('em', null, String(n)), bar, el('span', null, i % every === 0 ? dShort(d) : ''));
+      requestAnimationFrame(() => { bar.style.height = (n / dm * 100) + '%'; });
+      dw.append(col);
+    });
+    c2.append(dw);
+    grid.append(c1, c2); body.append(grid);
+    // таблица
+    const c3 = el('div', 'card'); c3.style.marginBottom = '18px';
+    const h3 = el('div', 'card-h'); h3.append(el('h2', null, 'Сводная таблица'), el('span', 'small', 'нажми на заголовок, чтобы отсортировать')); c3.append(h3);
+    const cols = [['k', CH.mode === 'msg' ? 'Канал · сообщение' : 'Канал'], ['n', 'Лиды'], ['held', 'Встречи'], ['cv1', 'Лид → встреча'], ['paid', 'Оплаты'], ['cv2', 'Лид → оплата'], ['work', 'В работе'], ['refused', 'Отказ'], ['ignore', 'Игнор']];
+    const val = (g, c) => c === 'cv1' ? (g.n ? g.held / g.n : 0) : c === 'cv2' ? (g.n ? g.paid / g.n : 0) : g[c];
+    const sorted = [...groups].sort((x, y) => CH.sort === 'k' ? x.k.localeCompare(y.k, 'ru') : val(y, CH.sort) - val(x, CH.sort));
+    const tw = el('div', 'tbl-wrap'), t = el('table', 'tbl'), th = el('thead'), hr = el('tr');
+    cols.forEach(([c, name]) => { const x = el('th', 'sort' + (CH.sort === c ? ' on' : ''), name); x.addEventListener('click', () => { CH.sort = c; renderChannels(); }); hr.append(x); });
+    th.append(hr); t.append(th);
+    const tb = el('tbody');
+    const line = (g, bold) => {
+      const tr = el('tr', CH.sel === g.k ? 'sel' : '');
+      cols.forEach(([c]) => {
+        const td = el('td');
+        if (c === 'k') { td.textContent = g.k; td.style.fontWeight = '600'; }
+        else if (c === 'cv1' || c === 'cv2') td.textContent = pcs(c === 'cv1' ? g.held : g.paid, g.n);
+        else td.textContent = String(g[c]);
+        if (bold) td.style.fontWeight = '700';
+        tr.append(td);
+      });
+      if (!bold) { tr.style.cursor = 'pointer'; tr.addEventListener('click', () => { CH.sel = CH.sel === g.k ? null : g.k; renderChannels(); }); }
+      return tr;
+    };
+    sorted.forEach(g => tb.append(line(g)));
+    tb.append(line({ k: 'Итого', ...T }, true));
+    t.append(tb); tw.append(t); c3.append(tw); body.append(c3);
+    // лиды списком
+    const list = rows.filter(inSel).sort((x, y) => y.day.localeCompare(x.day));
+    const c4 = el('div', 'card');
+    const h4 = el('div', 'card-h'); h4.append(el('h2', null, 'Лиды' + (CH.sel ? ': ' + CH.sel : '')), el('span', 'small', list.length + ' шт.' + (CH.sel ? ' · нажми на канал ещё раз, чтобы показать всех' : ''))); c4.append(h4);
+    const lw = el('div', 'ch-leads'), lt = el('table', 'tbl'), lh = el('thead'), lhr = el('tr');
+    ['Дата', 'Канал', 'Формат', 'Первое сообщение', 'Встреча', 'Итог'].forEach(n => lhr.append(el('th', null, n)));
+    lh.append(lhr); lt.append(lh);
+    const lb = el('tbody');
+    const ST = { paid: 'купил', refused: 'отказ', ignore: 'игнор', work: 'в работе' };
+    list.slice(0, 500).forEach(r => {
+      const tr = el('tr');
+      const st = el('span', 'st ' + r.st, ST[r.st]); const tdS = el('td'); tdS.append(st);
+      tr.append(el('td', null, dShort(r.day)), el('td', null, r.ch), el('td', null, r.fmt), el('td', 'msg', r.msg || '—'), el('td', null, r.held ? 'да' : ''), tdS);
+      [0, 1, 2].forEach(i => { tr.children[i].style.textAlign = 'left'; });
+      lb.append(tr);
+    });
+    lt.append(lb); lw.append(lt); c4.append(lw);
+    if (list.length > 500) c4.append(el('p', 'small', 'Показаны последние 500 лидов. Сузь период или найди по слову.'));
+    body.append(c4);
+  }
+  document.querySelectorAll('#ch-preset button').forEach(b => b.addEventListener('click', () => {
+    CH.preset = b.dataset.p;
+    document.querySelectorAll('#ch-preset button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+    $('ch-dates').hidden = CH.preset !== 'custom';
+    if (CH.preset === 'custom' && !CH.from) { const [a, z] = [mskToday().slice(0, 8) + '01', mskToday()]; CH.from = a; CH.to = z; }
+    drawChannels();
+  }));
+  ['ch-from', 'ch-to'].forEach(id => $(id).addEventListener('change', () => { CH.from = $('ch-from').value; CH.to = $('ch-to').value; if (CH.from && CH.to) drawChannels(); }));
+  let chT; $('ch-q').addEventListener('input', () => { clearTimeout(chT); chT = setTimeout(() => { CH.q = $('ch-q').value.trim(); drawChannels(); }, 500); });
+  document.querySelectorAll('#ch-mode button').forEach(b => b.addEventListener('click', () => {
+    CH.mode = b.dataset.m; CH.sel = null;
+    document.querySelectorAll('#ch-mode button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+    if (CH.data) renderChannels();
+  }));
+  /* маркетинг видит только свои вкладки - без цифр продаж */
+  function marketingMode() {
+    ROLE = 'marketing';
+    document.querySelectorAll('.side .nav-btn[data-page]').forEach(b => { b.style.display = ['channels'].includes(b.dataset.page) ? '' : 'none'; });
+    document.querySelectorAll('a[href*="docs.google.com/spreadsheets"]').forEach(a => { a.style.display = 'none'; });
+    $('sync-btn').style.display = 'none';
+    if (!['channels'].includes(current)) go('channels'); else drawChannels();
   }
   async function loadBook() {
     if (TG_INIT) {
@@ -1854,8 +2086,8 @@ a { color: inherit; }
       if (!r.ok) throw new Error('база ответила ' + r.status);
       const j = await r.json();
       if (j.me) { renderMe(j.me); throw new MeMode(); }
-      if (j.role === 'marketing') { noAccess('Здесь скоро появится аналитика для маркетинга: каналы, эфиры, UTM-метки и возражения. Пока это всё есть в боте командами.'); throw new MeMode(); }
-      return { sheets: j.sheets, synced_at: j.synced_at, hang: j.hang ?? null, pipe: j.pipe ?? null };
+      if (j.role === 'marketing') { marketingMode(); throw new MeMode(); }
+      ROLE = j.role; return { sheets: j.sheets, synced_at: j.synced_at, hang: j.hang ?? null, pipe: j.pipe ?? null };
     }
     const { data: { session } } = await SB.auth.getSession();
     if (!session) { showLogin(); throw new Error('нужно войти'); }
@@ -1864,8 +2096,8 @@ a { color: inherit; }
     if (!r.ok) throw new Error('база ответила ' + r.status);
     const j = await r.json();
     if (j.me) { renderMe(j.me); throw new MeMode(); }
-    if (j.role === 'marketing') { noAccess('Здесь скоро появится аналитика для маркетинга: каналы, эфиры, UTM-метки и возражения. Пока это всё есть в боте командами.'); throw new MeMode(); }
-    return { sheets: j.sheets, synced_at: j.synced_at, hang: j.hang ?? null, pipe: j.pipe ?? null };
+    if (j.role === 'marketing') { marketingMode(); throw new MeMode(); }
+    ROLE = j.role; return { sheets: j.sheets, synced_at: j.synced_at, hang: j.hang ?? null, pipe: j.pipe ?? null };
   }
   async function loadBookXlsx() {
     const r = await fetch('https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/export?format=xlsx', { cache: 'no-store' });
@@ -2053,6 +2285,8 @@ a { color: inherit; }
   function applyData(data) {
     RAW = data.payments; META = data.meta; OBJ = data.objections || []; HANG = data.hang ?? null; PIPE = data.pipe ?? null;
     document.querySelectorAll('a[href*="docs.google.com/spreadsheets"]').forEach(a => { a.href = TABLE_URL + (/^\d+$/.test(META.pay_gid || '') ? '#gid=' + META.pay_gid : ''); });
+    // таблицу с зарплатами открывает только Слава
+    if (ROLE && ROLE !== 'admin') document.querySelectorAll('a[href*="docs.google.com/spreadsheets"]').forEach(a => { a.style.display = 'none'; });
     const keepPay = payMonth, keepObj = objMonth;
     M = compute(data.payments, data.days, data.managers, data.plans);
     payMonth = keepPay === M.prev ? M.prev : M.cur; objMonth = keepObj === M.prev ? M.prev : M.cur;
