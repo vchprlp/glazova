@@ -540,6 +540,11 @@ a { color: inherit; }
 .obj-search input::placeholder { color: var(--muted); }
 .obj-search:focus-within { box-shadow: 0 0 0 2px var(--accent-ink), var(--shadow); }
 .obj-list { display: flex; flex-direction: column; gap: 28px; margin-top: 10px; }
+.obj-themes { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 8px; }
+.obj-themes button { border: 0; cursor: pointer; font: inherit; font-size: 13px; font-weight: 600; height: 34px; padding: 0 14px; border-radius: 999px; background: var(--card); color: var(--ink); box-shadow: var(--shadow); display: inline-flex; align-items: center; gap: 8px; }
+.obj-themes button b { font-weight: 600; color: var(--muted); }
+.obj-themes button[aria-pressed="true"] { background: var(--accent); color: #fff; }
+.obj-themes button[aria-pressed="true"] b { color: rgba(255,255,255,.8); }
 .obj-day h2 { display: flex; align-items: baseline; gap: 10px; margin: 0 0 12px; font-size: 15px; font-weight: 600; letter-spacing: -0.01em; }
 .obj-day h2 span { font-size: 13px; font-weight: 400; color: var(--muted); }
 .obj-grid { columns: 3 300px; column-gap: 18px; }
@@ -945,6 +950,7 @@ a { color: inherit; }
           <button class="gray-btn" type="button" id="obj-month"><svg class="ico" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="3"/><path d="M4 10h16M9 3v4M15 3v4"/></svg><span></span></button>
         </div>
       </div>
+      <div id="obj-themes" class="obj-themes" data-anim style="--i:1"></div>
       <div id="obj-list" class="obj-list"></div>
     </section>
     <section class="page" id="page-channels" aria-label="Каналы">
@@ -1436,10 +1442,38 @@ a { color: inherit; }
     while ((k = low.indexOf(q, i)) !== -1) { p.append(document.createTextNode(text.slice(i, k)), el('mark', null, text.slice(k, k + q.length))); i = k + q.length; }
     p.append(document.createTextNode(text.slice(i)));
   }
-  function objRows() { return OBJ.filter(o => o.month === objMonth && (!objQ || o.text.toLowerCase().includes(objQ))); }
+  // темы возражений: по ключевым словам, одно возражение может попасть в несколько тем
+  const OBJ_THEMES = [
+    ['Дорого / нет денег', /дорог|денег|деньг|бюджет|сумм|стоим|цен[аеуы]|не потян|кредит|рассроч|зп|зарплат|платить/i],
+    ['Подумать / посоветоваться', /подума|посовет|обсуд|муж|жен[аеуо]|семь|родител|решит/i],
+    ['Нет времени / позже', /времен|позже|не сейчас|после нг|нов(ый|ого) год|январ|февр|весн|потом|занят/i],
+    ['Сомнения в результате', /гарант|трудоустр|не уверен|сомнева|рынок|не найд|получится|возьмут|опыт|возраст|ии|нейросет/i],
+    ['Сравнивает / другие курсы', /курс|школ|самостоят|бесплатн|ютуб|youtube|сам[аи]? изуч|другие|конкурент/i],
+    ['Пропал / не отвечает', /пропал|не выш|игнор|не отвеча|не на связи/i],
+    ['Младше 18', /нет 18|не исполнилось 18|несовершеннолет|меньше 18|младше 18|школьни/i],
+  ];
+  let objTheme = null;
+  const themeOf = t => OBJ_THEMES.filter(([, re]) => re.test(t)).map(([n]) => n);
+  function objRows() { return OBJ.filter(o => o.month === objMonth && (!objQ || o.text.toLowerCase().includes(objQ)) && (!objTheme || (objTheme === 'Другое' ? !themeOf(o.text).length : themeOf(o.text).includes(objTheme)))); }
+  function drawThemes() {
+    const box = $('obj-themes'); box.replaceChildren();
+    const month = OBJ.filter(o => o.month === objMonth);
+    if (!month.length) return;
+    const cnt = {}; let other = 0;
+    month.forEach(o => { const th = themeOf(o.text); if (!th.length) other++; th.forEach(n => { cnt[n] = (cnt[n] || 0) + 1; }); });
+    const list = Object.entries(cnt).sort((a, b) => b[1] - a[1]); if (other) list.push(['Другое', other]);
+    const all = el('button', null); all.type = 'button'; all.setAttribute('aria-pressed', String(!objTheme)); all.append(document.createTextNode('Все'), el('b', null, String(month.length)));
+    all.addEventListener('click', () => { objTheme = null; drawObjections(); }); box.append(all);
+    list.forEach(([n, c]) => {
+      const b = el('button', null); b.type = 'button'; b.setAttribute('aria-pressed', String(objTheme === n));
+      b.append(document.createTextNode(n), el('b', null, c + ' · ' + Math.round(c / month.length * 100) + '%'));
+      b.addEventListener('click', () => { objTheme = objTheme === n ? null : n; drawObjections(); }); box.append(b);
+    });
+  }
   function drawObjections() {
     $('obj-sub').textContent = 'Что клиенты говорили менеджерам в ' + PREP[mi(objMonth)] + '. Свежие сверху.';
     $('obj-month').querySelector('span').textContent = 'Показать ' + monthName(objMonth === M.cur ? M.prev : M.cur);
+    drawThemes();
     const list = $('obj-list'); list.replaceChildren();
     const rows = objRows();
     $('obj-copy').disabled = !rows.length;
@@ -1474,7 +1508,7 @@ a { color: inherit; }
     const text = 'Возражения клиентов, ' + monthName(objMonth) + (objQ ? ' (поиск: ' + $('obj-q').value.trim() + ')' : '') + '\n\n' + rows.map(o => '— ' + o.text.replace(/\n+/g, ' ') + ' (' + dlabel(o.date) + ')').join('\n');
     Promise.resolve().then(() => copyText(text)).then(() => toast('Скопировано, вставляй в контент-план'), () => toast('Не получилось скопировать: выдели текст вручную'));
   });
-  $('obj-month').addEventListener('click', () => { objMonth = objMonth === M.cur ? M.prev : M.cur; drawObjections(); replay($('page-objections')); });
+  $('obj-month').addEventListener('click', () => { objMonth = objMonth === M.cur ? M.prev : M.cur; objTheme = null; drawObjections(); replay($('page-objections')); });
   let objT; $('obj-q').addEventListener('input', e => { clearTimeout(objT); objT = setTimeout(() => { objQ = e.target.value.trim().toLowerCase(); drawObjections(); }, 150); });
 
   function drawFunnel() {
@@ -1742,7 +1776,7 @@ a { color: inherit; }
 
   /* Телевизор показывает живые цифры по очереди */
   function tvSlides() {
-    if (!M) return [];
+    if (!M || M.stub) return []; // у маркетинга цифр продаж нет
     const today = M.byDay.find(d => d.date === M.asof) || { cash: 0, paid: 0 };
     const best = [...M.managers].sort((a, b) => b.cash - a.cash)[0];
     const s = [
@@ -2197,12 +2231,25 @@ a { color: inherit; }
   }));
   ['ut-from', 'ut-to'].forEach(id => $(id).addEventListener('change', () => { UT.from = $('ut-from').value; UT.to = $('ut-to').value; if (UT.from && UT.to) drawUtm(); }));
   /* маркетинг видит только свои вкладки - без цифр продаж */
+  async function loadMarketingObjections() {
+    try {
+      const r = await fetch(SB_URL + '/functions/v1/dash-data?view=objections', { headers: await authHeaders(), cache: 'no-store' });
+      if (!r.ok) return;
+      const j = await r.json();
+      const t = mskToday(), cur = [Number(t.slice(0, 4)), Number(t.slice(5, 7))], pk = prevMonth(...cur);
+      OBJ = await objectionsOf({ sheets: { 'Возражения': j.grid || [] } }, [keyOf(...cur), keyOf(...pk)]);
+      if (!M) M = { cur: keyOf(...cur), prev: keyOf(...pk), stub: true };
+      if (!objMonth) objMonth = M.cur;
+      if (current === 'objections') drawObjections();
+    } catch (e) {}
+  }
   function marketingMode() {
     ROLE = 'marketing';
-    document.querySelectorAll('.side .nav-btn[data-page]').forEach(b => { b.style.display = ['channels', 'utm'].includes(b.dataset.page) ? '' : 'none'; });
+    loadMarketingObjections();
+    document.querySelectorAll('.side .nav-btn[data-page]').forEach(b => { b.style.display = ['channels', 'utm', 'objections'].includes(b.dataset.page) ? '' : 'none'; });
     document.querySelectorAll('a[href*="docs.google.com/spreadsheets"]').forEach(a => { a.style.display = 'none'; });
     $('sync-btn').style.display = 'none';
-    if (!['channels', 'utm'].includes(current)) go('channels'); else go(current);
+    if (!['channels', 'utm', 'objections'].includes(current)) go('channels'); else go(current);
   }
   async function loadBook() {
     if (TG_INIT) {
