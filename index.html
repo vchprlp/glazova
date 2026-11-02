@@ -640,6 +640,7 @@ a { color: inherit; }
 .st.ignore { background: var(--track); color: var(--muted); }
 .st.work { background: var(--accent-soft); color: var(--accent-ink); }
 .ch-empty { padding: 48px 20px; text-align: center; color: var(--muted); }
+.st.none { background: transparent; color: var(--muted); box-shadow: inset 0 0 0 1px var(--line-2); }
 .st.think { background: rgba(124,108,255,.16); color: #9F94FF; }
 @media (max-width: 1100px) { .ch-grid { grid-template-columns: minmax(0, 1fr); } .ch-kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 @media (max-width: 640px) { .ch-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } .ch-tools .obj-search, .ch-tools .obj-search input { width: 100%; } }
@@ -795,6 +796,7 @@ a { color: inherit; }
       <button class="nav-btn" data-page="payments" aria-label="Оплаты"><svg class="ico" viewBox="0 0 24 24"><rect x="3.5" y="6" width="17" height="12.5" rx="3"/><path d="M3.5 10.5h17M7.5 15h3"/></svg><span class="tip">Оплаты</span></button>
       <button class="nav-btn" data-page="objections" aria-label="Возражения"><svg class="ico" viewBox="0 0 24 24"><path d="M5.5 4.5h13a2 2 0 0 1 2 2v8.5a2 2 0 0 1-2 2H11l-4.5 3.5V17h-1a2 2 0 0 1-2-2V6.5a2 2 0 0 1 2-2z"/><path d="M8.5 9.5h7M8.5 12.5h4.5"/></svg><span class="tip">Возражения</span></button>
       <button class="nav-btn" data-page="channels" aria-label="Каналы"><svg class="ico" viewBox="0 0 24 24"><path d="M4 19.5V13M9.3 19.5V8.5M14.7 19.5V11M20 19.5V4.5"/></svg><span class="tip">Каналы</span></button>
+      <button class="nav-btn" data-page="utm" aria-label="UTM-метки"><svg class="ico" viewBox="0 0 24 24"><path d="M4 12.5V5.5a1.5 1.5 0 0 1 1.5-1.5h7l7.5 7.5-8.5 8.5L4 12.5z"/><circle cx="8.5" cy="8.5" r="1.4"/></svg><span class="tip">UTM-метки</span></button>
       <button class="nav-btn" data-page="funnel" aria-label="Воронка"><svg class="ico" viewBox="0 0 24 24"><path d="M4 5h16l-6 7.5V19l-4-2v-4.5z"/></svg><span class="tip">Воронка</span></button>
     </nav>
     <div class="bottom">
@@ -958,6 +960,18 @@ a { color: inherit; }
         <div class="seg" id="ch-mode" role="group" aria-label="Группировка"><button type="button" data-m="ch" aria-pressed="true">По каналам</button><button type="button" data-m="msg">По сообщениям</button></div>
       </div>
       <div id="ch-body"></div>
+    </section>
+    <section class="page" id="page-utm" aria-label="UTM-метки">
+      <div class="ph" data-anim style="--i:0">
+        <div><h1>UTM-метки</h1><p id="ut-sub">Кто зашёл в бота Сейлбота по какой метке и что было дальше</p></div>
+      </div>
+      <div class="ch-tools" data-anim style="--i:1">
+        <div class="seg" id="ut-preset" role="group" aria-label="Период">
+          <button type="button" data-p="today">Сегодня</button><button type="button" data-p="yday">Вчера</button><button type="button" data-p="7">7 дней</button><button type="button" data-p="month" aria-pressed="true">Этот месяц</button><button type="button" data-p="prev">Прошлый месяц</button><button type="button" data-p="custom">Свои даты</button>
+        </div>
+        <div class="ch-dates" id="ut-dates" hidden><input type="date" id="ut-from" aria-label="С"><span>—</span><input type="date" id="ut-to" aria-label="По"></div>
+      </div>
+      <div id="ut-body"></div>
     </section>
     <section class="page" id="page-funnel" aria-label="Воронка">
       <div class="ph" data-anim style="--i:0"><div><h1>Воронка</h1><p id="fn-sub"></p></div><div class="ph-tools page-ms"><span class="chip neutral mswitch ms-box" hidden><button type="button" data-step="-1" aria-label="Предыдущий месяц">‹</button><b class="ms-name"></b><button type="button" data-step="1" aria-label="Следующий месяц">›</button></span></div></div>
@@ -1761,6 +1775,7 @@ a { color: inherit; }
     if (location.hash.slice(1) !== page) history.replaceState(null, '', '#' + page);
     window.scrollTo({ top: 0, behavior: 'instant' });
     if (page === 'channels') drawChannels();
+    if (page === 'utm') drawUtm();
     if (M) { grown = false; animateNums = true; if (page === 'overview') drawAll(); if (page === 'managers') drawManagers(); if (page === 'payments') drawPayments(); if (page === 'funnel') drawFunnel(); if (page === 'objections') drawObjections(); }
     replay($('page-' + page));
   }
@@ -1779,7 +1794,7 @@ a { color: inherit; }
   $('wk-next').addEventListener('click', () => { weekStart.setDate(weekStart.getDate() + 7); drawWeek(); });
   let rz; addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { moveInd(); if (M && current === 'overview') { animateNums = false; grown = true; drawStats(); } }, 150); });
 
-  const start = ['overview', 'managers', 'payments', 'objections', 'channels', 'funnel'].includes(location.hash.slice(1)) ? location.hash.slice(1) : 'overview';
+  const start = ['overview', 'managers', 'payments', 'objections', 'channels', 'utm', 'funnel'].includes(location.hash.slice(1)) ? location.hash.slice(1) : 'overview';
   $('side').classList.add('intro');
   $('side').querySelectorAll('.logo, .nav-btn').forEach((n, i) => n.style.setProperty('--i', String(i)));
   document.querySelectorAll('.page').forEach(p => p.classList.toggle('on', p.id === 'page-' + start));
@@ -1787,6 +1802,7 @@ a { color: inherit; }
   document.querySelectorAll('.nav-btn[data-page]').forEach(b => { if (b.dataset.page !== start) b.removeAttribute('aria-current'); });
   moveInd();
   if (start === 'channels') setTimeout(() => drawChannels(), 0);
+  if (start === 'utm') setTimeout(() => drawUtm(), 0);
 
   /* тема: выбор запоминается в браузере; если не выбирал, берём системную */
   const root = document.documentElement;
@@ -2078,13 +2094,115 @@ a { color: inherit; }
     document.querySelectorAll('#ch-mode button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
     if (CH.data) renderChannels();
   }));
+  /* ---------- UTM-метки: заход в бота Сейлбота -> написал Насте -> встреча -> оплата ---------- */
+  const UT = { preset: 'month', from: null, to: null, sort: 'n', sel: null, data: null, key: '', busy: false };
+  function utRange() {
+    const t = mskToday(), d = new Date(t + 'T12:00:00Z');
+    const shift = n => { const x = new Date(d); x.setUTCDate(x.getUTCDate() + n); return x.toISOString().slice(0, 10); };
+    if (UT.preset === 'today') return [t, t];
+    if (UT.preset === 'yday') return [shift(-1), shift(-1)];
+    if (UT.preset === '7') return [shift(-6), t];
+    if (UT.preset === 'prev') { const x = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 0)); const e = x.toISOString().slice(0, 10); return [e.slice(0, 8) + '01', e]; }
+    if (UT.preset === 'custom' && UT.from && UT.to) return UT.from <= UT.to ? [UT.from, UT.to] : [UT.to, UT.from];
+    return [t.slice(0, 8) + '01', t];
+  }
+  async function drawUtm() {
+    const body = $('ut-body'); const [a, b] = utRange(), key = a + '|' + b;
+    if (UT.preset === 'custom') { $('ut-from').value = a; $('ut-to').value = b; }
+    $('ut-sub').textContent = 'Заходы в бота с ' + dlabel(a) + (a === b ? '' : ' по ' + dlabel(b)) + ' · метка берётся по первому заходу человека';
+    if (UT.data && UT.key === key) { renderUtm(); return; }
+    if (UT.busy) return;
+    UT.busy = true;
+    body.replaceChildren(el('div', 'ch-empty', 'Читаю таблицы Сейлбота…'));
+    try {
+      const r = await fetch(SB_URL + '/functions/v1/dash-data?view=utm&from=' + a + '&to=' + b, { headers: await authHeaders(), cache: 'no-store' });
+      if (!r.ok) throw new Error('база ответила ' + r.status);
+      UT.data = await r.json(); UT.key = key; UT.sel = null; UT.busy = false;
+      if (UT.key !== utRange().join('|')) return drawUtm();
+      renderUtm();
+    } catch (e) { UT.busy = false; body.replaceChildren(el('div', 'err', 'Не получилось загрузить метки (' + e.message + '). Попробуй ещё раз.')); }
+  }
+  function renderUtm() {
+    const body = $('ut-body'), rows = UT.data.rows || [];
+    body.replaceChildren();
+    if (!rows.length) { body.append(el('div', 'card ch-empty', 'За этот период новых заходов в бота нет')); return; }
+    const T = rows.reduce((t, r) => { t.n++; if (r.lead) t.lead++; if (r.held) t.held++; if (r.st === 'paid') t.paid++; return t; }, { n: 0, lead: 0, held: 0, paid: 0 });
+    const k = el('div', 'ch-kpis');
+    [[T.n, 'зашли в бота', 'новые люди за период'], [T.lead, 'написали Насте', pcs(T.lead, T.n) + ' от зашедших'], [T.held, 'дошли до встречи', pcs(T.held, T.lead) + ' от написавших'],
+     [T.paid, 'оплатили', pcs(T.paid, T.lead) + ' от написавших'], [rows.filter(r => r.src === 'без метки').length, 'без метки', 'зашли без utm_source']].forEach(([v, l, s2]) => {
+      const c = el('div', 'card'); c.append(el('div', 'v num', String(v)), el('div', 'l', l), el('div', 's', s2)); k.append(c);
+    });
+    body.append(k);
+    const by = {};
+    rows.forEach(r => { const g = by[r.src] || (by[r.src] = { k: r.src, n: 0, lead: 0, held: 0, paid: 0 }); g.n++; if (r.lead) g.lead++; if (r.held) g.held++; if (r.st === 'paid') g.paid++; });
+    const groups = Object.values(by).sort((x, y) => y.n - x.n), max = Math.max(...groups.map(g => g.n));
+    const grid = el('div', 'ch-grid');
+    const c1 = el('div', 'card'); const h1 = el('div', 'card-h'); h1.append(el('h2', null, 'Метки'), el('span', 'small', 'нажми, чтобы увидеть людей')); c1.append(h1);
+    const bars = el('div', 'ch-bars');
+    groups.forEach(g => {
+      const r = el('div', 'ch-bar' + (UT.sel === g.k ? ' sel' : '')); r.tabIndex = 0;
+      const tr = el('div', 'track'); const ia = el('i', 'a'), ib = el('i', 'b'), ip = el('i', 'p'); tr.append(ia, ib, ip);
+      r.append(el('div', 'n', g.k), el('div', 'c', g.n + ' зашли · ' + g.lead + ' написали (' + pcs(g.lead, g.n) + ') · ' + g.paid + ' опл.'), tr);
+      requestAnimationFrame(() => { ia.style.width = (g.n / max * 100) + '%'; ib.style.width = (g.lead / max * 100) + '%'; ip.style.width = (g.paid / max * 100) + '%'; });
+      const pick = () => { UT.sel = UT.sel === g.k ? null : g.k; renderUtm(); };
+      r.addEventListener('click', pick); r.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(); } });
+      bars.append(r);
+    });
+    const key = el('div', 'ch-key');
+    [['var(--peach-2)', 'зашли в бота'], ['var(--accent)', 'написали Насте'], ['var(--good)', 'оплатили']].forEach(([c, t]) => { const sp = el('span'); const i = el('i'); i.style.background = c; sp.append(i, document.createTextNode(t)); key.append(sp); });
+    c1.append(bars, key);
+    const c2 = el('div', 'card'); const h2 = el('div', 'card-h'); h2.append(el('h2', null, 'Заходы по дням'), el('span', 'small', UT.sel || 'все метки')); c2.append(h2);
+    const days = []; for (let d = new Date(UT.data.from + 'T12:00:00Z'); d.toISOString().slice(0, 10) <= UT.data.to; d.setUTCDate(d.getUTCDate() + 1)) days.push(d.toISOString().slice(0, 10));
+    const inSel = r => !UT.sel || r.src === UT.sel;
+    const cnt = {}; rows.filter(inSel).forEach(r => { cnt[r.day] = (cnt[r.day] || 0) + 1; });
+    const dm = Math.max(1, ...days.map(d => cnt[d] || 0)); const every = Math.ceil(days.length / 10);
+    const dw = el('div', 'ch-days');
+    days.forEach((d, i) => { const col = el('div', 'd'); const bar = el('b'); const n = cnt[d] || 0; col.title = dShort(d) + ': ' + n; col.append(el('em', null, String(n)), bar, el('span', null, i % every === 0 ? dShort(d) : '')); requestAnimationFrame(() => { bar.style.height = (n / dm * 100) + '%'; }); dw.append(col); });
+    c2.append(dw); grid.append(c1, c2); body.append(grid);
+    // таблица
+    const c3 = el('div', 'card'); c3.style.marginBottom = '18px';
+    const h3 = el('div', 'card-h'); h3.append(el('h2', null, 'Сводная таблица'), el('span', 'small', 'нажми на заголовок, чтобы отсортировать')); c3.append(h3);
+    const cols = [['k', 'Метка'], ['n', 'Зашли'], ['lead', 'Написали'], ['cv1', 'Зашли → написали'], ['held', 'Встречи'], ['paid', 'Оплаты'], ['cv2', 'Написали → оплата']];
+    const val = (g, c) => c === 'cv1' ? (g.n ? g.lead / g.n : 0) : c === 'cv2' ? (g.lead ? g.paid / g.lead : 0) : g[c];
+    const sorted = [...groups].sort((x, y) => UT.sort === 'k' ? x.k.localeCompare(y.k, 'ru') : val(y, UT.sort) - val(x, UT.sort));
+    const tw = el('div', 'tbl-wrap'), t = el('table', 'tbl'), th = el('thead'), hr = el('tr');
+    cols.forEach(([c, name]) => { const x = el('th', 'sort' + (UT.sort === c ? ' on' : ''), name); x.addEventListener('click', () => { UT.sort = c; renderUtm(); }); hr.append(x); });
+    th.append(hr); t.append(th);
+    const tb = el('tbody');
+    const line = (g, bold) => {
+      const tr = el('tr', UT.sel === g.k ? 'sel' : '');
+      cols.forEach(([c]) => { const td = el('td'); td.textContent = c === 'k' ? g.k : c === 'cv1' ? pcs(g.lead, g.n) : c === 'cv2' ? pcs(g.paid, g.lead) : String(g[c]); if (c === 'k' || bold) td.style.fontWeight = bold ? '700' : '600'; tr.append(td); });
+      if (!bold) { tr.style.cursor = 'pointer'; tr.addEventListener('click', () => { UT.sel = UT.sel === g.k ? null : g.k; renderUtm(); }); }
+      return tr;
+    };
+    sorted.forEach(g => tb.append(line(g))); tb.append(line({ k: 'Итого', ...T }, true));
+    t.append(tb); tw.append(t); c3.append(tw); body.append(c3);
+    // люди
+    const list = rows.filter(inSel).sort((x, y) => y.day.localeCompare(x.day));
+    const c4 = el('div', 'card'); const h4 = el('div', 'card-h'); h4.append(el('h2', null, 'Люди' + (UT.sel ? ': ' + UT.sel : '')), el('span', 'small', list.length + ' чел.')); c4.append(h4);
+    const lw = el('div', 'ch-leads'), lt = el('table', 'tbl'), lh = el('thead'), lhr = el('tr');
+    ['Дата', 'Ник', 'Метка', 'Написал Насте', 'Встреча', 'Итог'].forEach(n => lhr.append(el('th', null, n)));
+    lh.append(lhr); lt.append(lh);
+    const ST = { paid: 'купил', refused: 'отказ', ignore: 'игнор', work: 'в работе', none: 'не написал' };
+    const lb = el('tbody');
+    list.slice(0, 500).forEach(r => { const tr = el('tr'); const tdS = el('td'); tdS.append(el('span', 'st ' + r.st, ST[r.st])); tr.append(el('td', null, dShort(r.day)), el('td', null, r.nick ? '@' + r.nick : '—'), el('td', null, r.src), el('td', null, r.lead ? 'да' : ''), el('td', null, r.held ? 'да' : ''), tdS); lb.append(tr); });
+    lt.append(lb); lw.append(lt); c4.append(lw); body.append(c4);
+  }
+  document.querySelectorAll('#ut-preset button').forEach(b => b.addEventListener('click', () => {
+    UT.preset = b.dataset.p;
+    document.querySelectorAll('#ut-preset button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+    $('ut-dates').hidden = UT.preset !== 'custom';
+    if (UT.preset === 'custom' && !UT.from) { UT.from = mskToday().slice(0, 8) + '01'; UT.to = mskToday(); }
+    drawUtm();
+  }));
+  ['ut-from', 'ut-to'].forEach(id => $(id).addEventListener('change', () => { UT.from = $('ut-from').value; UT.to = $('ut-to').value; if (UT.from && UT.to) drawUtm(); }));
   /* маркетинг видит только свои вкладки - без цифр продаж */
   function marketingMode() {
     ROLE = 'marketing';
-    document.querySelectorAll('.side .nav-btn[data-page]').forEach(b => { b.style.display = ['channels'].includes(b.dataset.page) ? '' : 'none'; });
+    document.querySelectorAll('.side .nav-btn[data-page]').forEach(b => { b.style.display = ['channels', 'utm'].includes(b.dataset.page) ? '' : 'none'; });
     document.querySelectorAll('a[href*="docs.google.com/spreadsheets"]').forEach(a => { a.style.display = 'none'; });
     $('sync-btn').style.display = 'none';
-    if (current !== 'channels') go('channels'); else drawChannels();
+    if (!['channels', 'utm'].includes(current)) go('channels'); else go(current);
   }
   async function loadBook() {
     if (TG_INIT) {
