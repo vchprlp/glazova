@@ -732,6 +732,10 @@ a { color: inherit; }
 .me-head { grid-template-columns: auto 1fr; align-items: center; gap: 18px; background: linear-gradient(180deg, #3A1A08 0, #17171A 60%); }
 .me-av { width: 72px; height: 72px; border-radius: 50%; background: #FF5A00; display: grid; place-items: center; font-size: 26px; font-weight: 700; }
 .me-name { font-size: 26px; font-weight: 700; letter-spacing: -0.02em; }
+.me-ms { display: inline-flex; align-items: center; gap: 4px; margin-top: 8px; background: rgba(255,255,255,.08); border-radius: 999px; padding: 2px; }
+.me-ms b { min-width: 110px; text-align: center; font-size: 13px; font-weight: 600; }
+.me-ms button { width: 28px; height: 28px; border: 0; border-radius: 50%; background: transparent; color: #F4F1EE; font-size: 18px; cursor: pointer; }
+.me-ms button:disabled { opacity: .3; cursor: default; }
 .me-tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
 .me-two { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 @media (max-width: 860px) { .me-tiles { grid-template-columns: 1fr 1fr; } .me-two { grid-template-columns: 1fr; } }
@@ -1860,7 +1864,16 @@ a { color: inherit; }
   class MeMode extends Error {}
   const rub = n => Math.round(n).toLocaleString('ru-RU');
   const pl = (n, a, b, c) => { const m = n % 10, h = n % 100; return m === 1 && h !== 11 ? a : m >= 2 && m <= 4 && (h < 12 || h > 14) ? b : c; };
+  let ME_MONTH = null; // выбранный месяц на экране менеджера ('YYYY-MM'), null - текущий
+  async function meSwitch(step) {
+    const d = window.__me; if (!d || !d.months) return;
+    const i = d.months.indexOf(d.ym), k = d.months[i + step]; if (!k) return;
+    ME_MONTH = k;
+    const b = $('me-ms'); if (b) b.style.opacity = '.5';
+    try { await loadBook(); } catch (e) {}
+  }
   function renderMe(d) {
+    window.__me = d;
     document.title = 'Мои продажи · ' + d.label;
     $('logout-btn').textContent = d.label + ' · Выйти';
     let box = $('me');
@@ -1879,7 +1892,8 @@ a { color: inherit; }
       <section class="me-card me-head">
         <div class="me-av">${ini}</div>
         <div><div class="me-name">${e(d.label)}</div>
-        <div class="me-s">${d.rank} место из ${d.total} по кассе · ${d.month}</div>
+        <div class="me-s">${d.rank} место из ${d.total} по кассе · ${d.month}${d.past ? ' (месяц закрыт)' : ''}</div>
+        ${d.months && d.months.length > 1 ? `<div class="me-ms" id="me-ms"><button type="button" data-st="-1" ${d.months.indexOf(d.ym) <= 0 ? 'disabled' : ''} aria-label="Предыдущий месяц">‹</button><b>${d.month} ${d.ym.slice(0, 4)}</b><button type="button" data-st="1" ${d.months.indexOf(d.ym) >= d.months.length - 1 ? 'disabled' : ''} aria-label="Следующий месяц">›</button></div>` : ''}
         <div class="me-q">${d.leads} лидов · ${d.booked} назначено · ${d.held} проведено · ${Math.round(d.share * 100)}% кассы отдела</div></div>
       </section>
 
@@ -1895,13 +1909,13 @@ a { color: inherit; }
         <div class="me-big">🔥 ${rub(d.cash)} ₽ <span class="me-of">из ${rub(d.plan)}</span></div>
         <div class="me-bar"><i style="width:${p}%"></i></div>
         <div class="me-s">${d.left > 0 ? 'Осталось ' + rub(d.left) + ' ₽ · это ~' + d.leftDeals + ' ' + pl(d.leftDeals, 'оплата', 'оплаты', 'оплат') : '🎉 План выполнен!'}</div>
-        <div class="me-s">📈 В твоём темпе к концу месяца: <b>${short(d.forecast)}</b>, зарплата ~<b>${rub(d.forecastSalary)} ₽</b></div>
+        ${d.past ? '' : `<div class="me-s">📈 В твоём темпе к концу месяца: <b>${short(d.forecast)}</b>, зарплата ~<b>${rub(d.forecastSalary)} ₽</b></div>`}
       </section>
 
       <section class="me-card">
         <div class="me-l">Моя зарплата · 5% от чистой выручки</div>
-        <div class="me-mid">💰 ${rub(d.salary)} ₽ <span class="me-of">сейчас</span></div>
-        <div class="me-steps">${d.steps.map(st => `<div class="me-step"><span>+${st.k} ${pl(st.k, 'оплата', 'оплаты', 'оплат')}</span><b>${rub(st.salary)} ₽</b>${st.tags.map(t => `<em>${t}</em>`).join('')}</div>`).join('')}</div>
+        <div class="me-mid">💰 ${rub(d.salary)} ₽ <span class="me-of">${d.past ? 'за ' + d.month.toLowerCase() : 'сейчас'}</span></div>
+        ${d.past ? '' : `<div class="me-steps">${d.steps.map(st => `<div class="me-step"><span>+${st.k} ${pl(st.k, 'оплата', 'оплаты', 'оплат')}</span><b>${rub(st.salary)} ₽</b>${st.tags.map(t => `<em>${t}</em>`).join('')}</div>`).join('')}</div>`}
       </section>
 
       <section class="me-card">
@@ -1930,6 +1944,7 @@ a { color: inherit; }
         </section>
       </div>
     </div>`;
+    box.querySelectorAll('#me-ms button[data-st]').forEach(b => b.addEventListener('click', () => meSwitch(Number(b.dataset.st))));
   }
 
   async function unzip(buf) {
@@ -2253,7 +2268,7 @@ a { color: inherit; }
   }
   async function loadBook() {
     if (TG_INIT) {
-      const r = await fetch(SB_URL + '/functions/v1/dash-data', { headers: { 'X-TG-Init': TG_INIT, apikey: SB_ANON, Authorization: 'Bearer ' + SB_ANON }, cache: 'no-store' });
+      const r = await fetch(SB_URL + '/functions/v1/dash-data' + (ME_MONTH ? '?month=' + ME_MONTH : ''), { headers: { 'X-TG-Init': TG_INIT, apikey: SB_ANON, Authorization: 'Bearer ' + SB_ANON }, cache: 'no-store' });
       if (r.status === 401) { noAccess('Не получилось подтвердить вход через Telegram. Закрой дашборд и открой его заново из бота.'); throw new MeMode(); }
       if (r.status === 403) { noAccess('У твоего Telegram пока нет доступа к дашборду. Напиши Славе.'); throw new MeMode(); }
       if (!r.ok) throw new Error('база ответила ' + r.status);
@@ -2264,7 +2279,7 @@ a { color: inherit; }
     }
     const { data: { session } } = await SB.auth.getSession();
     if (!session) { showLogin(); throw new Error('нужно войти'); }
-    const r = await fetch(SB_URL + '/functions/v1/dash-data', { headers: { Authorization: 'Bearer ' + session.access_token, apikey: SB_ANON }, cache: 'no-store' });
+    const r = await fetch(SB_URL + '/functions/v1/dash-data' + (ME_MONTH ? '?month=' + ME_MONTH : ''), { headers: { Authorization: 'Bearer ' + session.access_token, apikey: SB_ANON }, cache: 'no-store' });
     if (r.status === 401 || r.status === 403) { showLogin(r.status === 403 ? 'У этой почты нет доступа к дашборду' : ''); throw new Error('нет доступа'); }
     if (!r.ok) throw new Error('база ответила ' + r.status);
     const j = await r.json();
