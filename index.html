@@ -246,6 +246,9 @@ a { color: inherit; }
 .mswitch button { width: 26px; height: 26px; border: 0; border-radius: 50%; background: transparent; color: inherit; font-size: 18px; line-height: 1; cursor: pointer; }
 .mswitch button:hover:not(:disabled) { background: rgba(255,255,255,.14); }
 .mswitch button:disabled { opacity: .3; cursor: default; }
+.page-ms .mswitch { height: 38px; background: var(--card); box-shadow: var(--shadow); color: var(--ink); }
+.page-ms .mswitch b { color: var(--ink); }
+.page-ms .mswitch button:hover:not(:disabled) { background: var(--track); }
 .chip.neutral .ico { width: 14px; height: 14px; }
 .banner { gap: 24px 32px; flex-wrap: wrap; }
 .banner-text { flex: 1 1 320px; }
@@ -813,7 +816,7 @@ a { color: inherit; }
                 <a class="pill-btn" href="https://docs.google.com/spreadsheets/d/1IAHYno3wdUdo86UuNai2jpVfTxS44l9h4B375y5NJhE/edit" target="_blank" rel="noopener"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 8v8M8 12h8"/></svg>Открыть таблицу</a>
                 <span class="chip" id="b-status"></span>
                 <span class="chip neutral num" id="b-upd" hidden></span>
-                <span class="chip neutral mswitch" id="b-month" hidden><button type="button" id="m-prev" aria-label="Предыдущий месяц">‹</button><b id="m-name"></b><button type="button" id="m-next" aria-label="Следующий месяц">›</button></span>
+                <span class="chip neutral mswitch ms-box" hidden><button type="button" data-step="-1" aria-label="Предыдущий месяц">‹</button><b class="ms-name"></b><button type="button" data-step="1" aria-label="Следующий месяц">›</button></span>
               </div>
             </div>
             <div class="tv boot" id="tv" aria-hidden="true">
@@ -894,6 +897,7 @@ a { color: inherit; }
     </section>
 
     <section class="page" id="page-managers" aria-label="Менеджеры">
+      <div class="ph" data-anim style="--i:0"><div><h1>Менеджеры</h1></div><div class="ph-tools page-ms"><span class="chip neutral mswitch ms-box" hidden><button type="button" data-step="-1" aria-label="Предыдущий месяц">‹</button><b class="ms-name"></b><button type="button" data-step="1" aria-label="Следующий месяц">›</button></span></div></div>
       <div class="mgr-switch" id="mgr-switch" role="group" aria-label="Выбери менеджера" data-anim style="--i:0"></div>
       <div class="card profile" data-anim style="--i:1">
         <div class="profile-top"></div>
@@ -956,7 +960,7 @@ a { color: inherit; }
       <div id="ch-body"></div>
     </section>
     <section class="page" id="page-funnel" aria-label="Воронка">
-      <div class="ph" data-anim style="--i:0"><div><h1>Воронка</h1><p id="fn-sub"></p></div></div>
+      <div class="ph" data-anim style="--i:0"><div><h1>Воронка</h1><p id="fn-sub"></p></div><div class="ph-tools page-ms"><span class="chip neutral mswitch ms-box" hidden><button type="button" data-step="-1" aria-label="Предыдущий месяц">‹</button><b class="ms-name"></b><button type="button" data-step="1" aria-label="Следующий месяц">›</button></span></div></div>
       <div class="fn-top">
         <div class="card" data-anim style="--i:1"><div class="card-h"><h2>План</h2><span class="small" id="fn-plan-sub"></span></div><div class="storage" id="fn-plan"></div></div>
         <div data-anim style="--i:2"><div class="sec-h" style="margin-top:0"><h2>Этапы</h2><span class="small label" id="fn-st-sub"></span></div><div class="stages" id="fn-stages"></div></div>
@@ -1004,8 +1008,9 @@ a { color: inherit; }
   const money = v => Math.abs(v) >= 1e6 ? trim((v / 1e6).toFixed(2).replace('.', ',')) + ' млн ₽'
     : Math.abs(v) >= 1e3 ? nf.format(Math.round(v / 1e3)) + ' тыс ₽' : nf.format(Math.round(v)) + ' ₽';
   const moneyShort = v => Math.abs(v) >= 1e6 ? trim((v / 1e6).toFixed(2).replace('.', ',')) + ' млн' : nf.format(Math.round(v / 1e3)) + ' тыс';
-  const pct = (v, d = 1) => (v * 100).toFixed(d).replace('.', ',') + '%';
-  const signed = (v, d = 0) => (v >= 0 ? '+' : '−') + pct(Math.abs(v), d);
+  // делить не на что (начало месяца, 0 лидов) - показываем прочерк вместо NaN/Infinity
+  const pct = (v, d = 1) => isFinite(v) ? (v * 100).toFixed(d).replace('.', ',') + '%' : '–';
+  const signed = (v, d = 0) => isFinite(v) ? (v >= 0 ? '+' : '−') + pct(Math.abs(v), d) : '–';
   const plural = (n, a, b, c) => { const m10 = n % 10, m100 = n % 100; return m10 === 1 && m100 !== 11 ? a : m10 >= 2 && m10 <= 4 && (m100 < 10 || m100 >= 20) ? b : c; };
   const MON = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
   const WD = ['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
@@ -1500,17 +1505,18 @@ a { color: inherit; }
     // Где теряем
     const bars = $('fn-bars'); bars.replaceChildren(); const max = Math.max(st[0].v, st[0].s);
     const convs = st.slice(1).map((x, i) => ({ c: x.v / st[i].v, p: x.s / st[i].s }));
-    const worst = convs.reduce((w, c, i) => c.c < convs[w].c ? i : w, 0);
+    const ok = c => isFinite(c.c);
+    const worst = convs.some(ok) ? convs.reduce((w, c, i) => ok(c) && (!ok(convs[w]) || c.c < convs[w].c) ? i : w, convs.findIndex(ok)) : -1;
     st.forEach((x, i) => {
       if (i) {
         const cv = convs[i - 1]; const l = el('div', 'fb-loss' + (i - 1 === worst ? ' worst' : ''));
         const dd = cv.c - cv.p;
-        l.append(document.createTextNode('↓ дошли '), el('b', 'num', pct(cv.c)), el('span', 'pp num', (dd >= 0 ? '+' : '−') + Math.abs(dd * 100).toFixed(1).replace('.', ',') + ' п.п.'));
+        l.append(document.createTextNode('↓ дошли '), el('b', 'num', pct(cv.c)), el('span', 'pp num', isFinite(dd) ? (dd >= 0 ? '+' : '−') + Math.abs(dd * 100).toFixed(1).replace('.', ',') + ' п.п.' : ''));
         if (i - 1 === worst) l.append(document.createTextNode(' · главная потеря'));
         bars.append(l);
       }
-      const row = el('div', 'fb-row'); const v = el('span', 'v num', nf.format(x.v)); v.append(el('small', null, 'сен ' + nf.format(x.s)));
-      const tr = el('div', 'fb-track'); const f = el('i' , i === worst + 1 ? 'loss' : ''); f.style.width = '0%'; const u = el('u'); u.style.width = '0%'; tr.append(f, u);
+      const row = el('div', 'fb-row'); const v = el('span', 'v num', nf.format(x.v)); v.append(el('small', null, W.P.sgen + ' ' + nf.format(x.s)));
+      const tr = el('div', 'fb-track'); const f = el('i' , worst >= 0 && i === worst + 1 ? 'loss' : ''); f.style.width = '0%'; const u = el('u'); u.style.width = '0%'; tr.append(f, u);
       requestAnimationFrame(() => requestAnimationFrame(() => { f.style.width = Math.max(1.5, x.v / max * 100) + '%'; u.style.width = (x.s / max * 100) + '%'; f.style.transitionDelay = (i * 110) + 'ms'; }));
       row.append(el('span', 'n', x.t), v, tr); bars.append(row);
     });
@@ -2255,12 +2261,16 @@ a { color: inherit; }
     const stamp = mskNow.toISOString().slice(0, 19) + '+03:00';
     return { payments: P.p.concat(C.p), days: P.d.concat(cd), managers: cm, plans: [P.plan, C.plan], meta: { updated_at: stamp, asof: last, pay_gid: gid, months, view: key, live: key === keyOf(y0, m0) }, objections, hang: book.hang ?? null, pipe: book.pipe ?? null };
   }
+  // переключатель месяца: в баннере «Обзора», в «Менеджерах» и «Воронке» - месяц один на весь дашборд
   function drawMonthSwitch() {
-    const box = $('b-month'); if (!box || !META || !META.months) return;
+    if (!META || !META.months) return;
     const i = META.months.indexOf(META.view);
-    box.hidden = META.months.length < 2;
-    $('m-name').textContent = cap(RU[Number(META.view.slice(5, 7)) - 1]) + ' ' + META.view.slice(0, 4);
-    $('m-prev').disabled = i <= 0 || loading; $('m-next').disabled = i < 0 || i >= META.months.length - 1 || loading;
+    document.querySelectorAll('.ms-box').forEach(box => {
+      box.hidden = META.months.length < 2;
+      box.querySelector('.ms-name').textContent = cap(RU[Number(META.view.slice(5, 7)) - 1]) + ' ' + META.view.slice(0, 4);
+      box.querySelector('[data-step="-1"]').disabled = i <= 0 || loading;
+      box.querySelector('[data-step="1"]').disabled = i < 0 || i >= META.months.length - 1 || loading;
+    });
   }
   async function switchMonth(step) {
     if (!META || !META.months || loading) return;
@@ -2297,7 +2307,7 @@ a { color: inherit; }
       grown = true; animateNums = false;
       if (current === 'overview') drawAll(); if (current === 'managers') drawManagers(); if (current === 'payments') drawPayments(); if (current === 'funnel') drawFunnel(); if (current === 'objections') drawObjections();
     }
-    drawSync();
+    drawSync(); drawMonthSwitch();
   }
   async function refresh(manual) {
     if (loading) return; loading = true; lastError = null; drawSync();
@@ -2314,8 +2324,7 @@ a { color: inherit; }
     }
   }
   $('sync-btn').addEventListener('click', () => refresh(true));
-  $('m-prev').addEventListener('click', () => switchMonth(-1));
-  $('m-next').addEventListener('click', () => switchMonth(1));
+  document.querySelectorAll('.ms-box button[data-step]').forEach(b => b.addEventListener('click', () => switchMonth(Number(b.dataset.step))));
   const tooOld = () => META && Date.now() - new Date(META.updated_at).getTime() > 10 * 6e4;
   setInterval(() => { if (!document.hidden) { if (tooOld()) refresh(false); else drawSync(); } }, 60e3);
   document.addEventListener('visibilitychange', () => { if (!document.hidden && tooOld()) refresh(false); });
