@@ -637,6 +637,14 @@ a { color: inherit; }
 .ch-leads .tbl { min-width: 720px; }
 .ch-dates[hidden] { display: none; }
 .ch-leads th, .ch-leads td { text-align: left !important; }
+.au-sel { display: inline-flex; align-items: center; gap: 8px; color: var(--muted); font-size: 13px; }
+.au-sel select { height: 38px; border: 0; border-radius: var(--r-pill); padding: 0 14px; background: var(--card); color: var(--ink); box-shadow: var(--shadow); font: inherit; font-size: 13px; color-scheme: light dark; }
+.au-kpis { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.au-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+.au-note { font-size: 12.5px; color: var(--muted); margin-top: 14px; line-height: 1.45; }
+.au-bar .c b { color: var(--ink); font-weight: 600; }
+@media (max-width: 600px) { .au-bar { grid-template-columns: 1fr; } .au-bar .n { white-space: normal; } }
+@media (max-width: 900px) { .au-grid { grid-template-columns: 1fr; } .au-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .ch-leads th:last-child, .ch-leads td:last-child { text-align: right !important; }
 .ch-leads td.msg { white-space: normal; text-align: left; color: var(--ink-2); min-width: 280px; }
 .st { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 11.5px; font-weight: 600; }
@@ -806,6 +814,7 @@ a { color: inherit; }
       <button class="nav-btn" data-page="objections" aria-label="Возражения"><svg class="ico" viewBox="0 0 24 24"><path d="M5.5 4.5h13a2 2 0 0 1 2 2v8.5a2 2 0 0 1-2 2H11l-4.5 3.5V17h-1a2 2 0 0 1-2-2V6.5a2 2 0 0 1 2-2z"/><path d="M8.5 9.5h7M8.5 12.5h4.5"/></svg><span class="tip">Возражения</span></button>
       <button class="nav-btn" data-page="channels" aria-label="Каналы"><svg class="ico" viewBox="0 0 24 24"><path d="M4 19.5V13M9.3 19.5V8.5M14.7 19.5V11M20 19.5V4.5"/></svg><span class="tip">Каналы</span></button>
       <button class="nav-btn" data-page="utm" aria-label="UTM-метки"><svg class="ico" viewBox="0 0 24 24"><path d="M4 12.5V5.5a1.5 1.5 0 0 1 1.5-1.5h7l7.5 7.5-8.5 8.5L4 12.5z"/><circle cx="8.5" cy="8.5" r="1.4"/></svg><span class="tip">UTM-метки</span></button>
+      <button class="nav-btn" data-page="audience" aria-label="Аудитория"><svg class="ico" viewBox="0 0 24 24"><circle cx="9" cy="8.5" r="3.2"/><path d="M3.5 19c.6-3.3 2.8-5.2 5.5-5.2s4.9 1.9 5.5 5.2"/><circle cx="16.5" cy="9" r="2.5"/><path d="M15.5 13.9c2.6-.3 4.5 1.4 5 4.6"/></svg><span class="tip">Аудитория</span></button>
       <button class="nav-btn" data-page="funnel" aria-label="Воронка"><svg class="ico" viewBox="0 0 24 24"><path d="M4 5h16l-6 7.5V19l-4-2v-4.5z"/></svg><span class="tip">Воронка</span></button>
     </nav>
     <div class="bottom">
@@ -982,6 +991,19 @@ a { color: inherit; }
         <div class="ch-dates" id="ut-dates" hidden><input type="date" id="ut-from" aria-label="С"><span>—</span><input type="date" id="ut-to" aria-label="По"></div>
       </div>
       <div id="ut-body"></div>
+    </section>
+    <section class="page" id="page-audience" aria-label="Аудитория">
+      <div class="ph" data-anim style="--i:0">
+        <div><h1>Аудитория</h1><p id="au-sub">Кто к нам приходит: сфера и возраст по первым сообщениям клиента</p></div>
+      </div>
+      <div class="ch-tools" data-anim style="--i:1">
+        <div class="seg" id="au-preset" role="group" aria-label="Период">
+          <button type="button" data-p="7">7 дней</button><button type="button" data-p="month" aria-pressed="true">Этот месяц</button><button type="button" data-p="prev">Прошлый месяц</button><button type="button" data-p="custom">Свои даты</button>
+        </div>
+        <div class="ch-dates" id="au-dates" hidden><input type="date" id="au-from" aria-label="С"><span>—</span><input type="date" id="au-to" aria-label="По"></div>
+        <label class="au-sel"><span>Канал</span><select id="au-ch" aria-label="Канал"><option value="">Все каналы</option></select></label>
+      </div>
+      <div id="au-body"></div>
     </section>
     <section class="page" id="page-funnel" aria-label="Воронка">
       <div class="ph" data-anim style="--i:0"><div><h1>Воронка</h1><p id="fn-sub"></p></div><div class="ph-tools page-ms"><span class="chip neutral mswitch ms-box" hidden><button type="button" data-step="-1" aria-label="Предыдущий месяц">‹</button><b class="ms-name"></b><button type="button" data-step="1" aria-label="Следующий месяц">›</button></span></div></div>
@@ -1814,6 +1836,7 @@ a { color: inherit; }
     window.scrollTo({ top: 0, behavior: 'instant' });
     if (page === 'channels') drawChannels();
     if (page === 'utm') drawUtm();
+    if (page === 'audience') drawAudience();
     if (M) { grown = false; animateNums = true; if (page === 'overview') drawAll(); if (page === 'managers') drawManagers(); if (page === 'payments') drawPayments(); if (page === 'funnel') drawFunnel(); if (page === 'objections') drawObjections(); }
     replay($('page-' + page));
   }
@@ -1832,7 +1855,7 @@ a { color: inherit; }
   $('wk-next').addEventListener('click', () => { weekStart.setDate(weekStart.getDate() + 7); drawWeek(); });
   let rz; addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { moveInd(); if (M && current === 'overview') { animateNums = false; grown = true; drawStats(); } }, 150); });
 
-  const start = ['overview', 'managers', 'payments', 'objections', 'channels', 'utm', 'funnel'].includes(location.hash.slice(1)) ? location.hash.slice(1) : 'overview';
+  const start = ['overview', 'managers', 'payments', 'objections', 'channels', 'utm', 'audience', 'funnel'].includes(location.hash.slice(1)) ? location.hash.slice(1) : 'overview';
   $('side').classList.add('intro');
   $('side').querySelectorAll('.logo, .nav-btn').forEach((n, i) => n.style.setProperty('--i', String(i)));
   document.querySelectorAll('.page').forEach(p => p.classList.toggle('on', p.id === 'page-' + start));
@@ -1841,6 +1864,7 @@ a { color: inherit; }
   moveInd();
   if (start === 'channels') setTimeout(() => drawChannels(), 0);
   if (start === 'utm') setTimeout(() => drawUtm(), 0);
+  if (start === 'audience') setTimeout(() => drawAudience(), 0);
 
   /* тема: выбор запоминается в браузере; если не выбирал, берём системную */
   const root = document.documentElement;
@@ -2245,6 +2269,111 @@ a { color: inherit; }
     drawUtm();
   }));
   ['ut-from', 'ut-to'].forEach(id => $(id).addEventListener('change', () => { UT.from = $('ut-from').value; UT.to = $('ut-to').value; if (UT.from && UT.to) drawUtm(); }));
+
+  /* ---------- Аудитория: сфера и возраст лидов (по ключевым словам в первых сообщениях) ---------- */
+  const AU = { preset: 'month', from: null, to: null, ch: '', sort: 'n', data: null, key: '', busy: false };
+  const AGE_ORDER = ['до 25', '25–29', '30–34', '35–44', '45+'];
+  const AU_UNKNOWN = ['Не указал', 'Нет данных'];
+  function auRange() {
+    const t = mskToday(), d = new Date(t + 'T12:00:00Z');
+    const shift = n => { const x = new Date(d); x.setUTCDate(x.getUTCDate() + n); return x.toISOString().slice(0, 10); };
+    if (AU.preset === '7') return [shift(-6), t];
+    if (AU.preset === 'prev') { const x = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 0)); const e = x.toISOString().slice(0, 10); return [e.slice(0, 8) + '01', e]; }
+    if (AU.preset === 'custom' && AU.from && AU.to) return AU.from <= AU.to ? [AU.from, AU.to] : [AU.to, AU.from];
+    return [t.slice(0, 8) + '01', t];
+  }
+  async function drawAudience(force) {
+    const body = $('au-body'); const [a, b] = auRange(), key = a + '|' + b;
+    if (AU.preset === 'custom') { $('au-from').value = a; $('au-to').value = b; }
+    $('au-sub').textContent = 'Лиды с ' + dlabel(a) + (a === b ? '' : ' по ' + dlabel(b)) + ' · сфера и возраст по первым сообщениям клиента';
+    if (AU.data && AU.key === key && !force) { renderAudience(); return; }
+    if (AU.busy) return;
+    AU.busy = true;
+    body.replaceChildren(el('div', 'ch-empty', 'Читаю первые сообщения клиентов…'));
+    try {
+      const r = await fetch(SB_URL + '/functions/v1/dash-data?view=audience&from=' + a + '&to=' + b, { headers: await authHeaders(), cache: 'no-store' });
+      if (!r.ok) throw new Error('база ответила ' + r.status);
+      AU.data = await r.json(); AU.key = key; AU.busy = false;
+      if (AU.key !== auRange().join('|')) return drawAudience();
+      const chs = [...new Set(AU.data.rows.map(x => x.ch))].sort((x, y) => x.localeCompare(y, 'ru'));
+      if (AU.ch && !chs.includes(AU.ch)) AU.ch = '';
+      const sel = $('au-ch'); sel.replaceChildren(new Option('Все каналы', ''), ...chs.map(c => new Option(c, c))); sel.value = AU.ch;
+      renderAudience();
+    } catch (e) { AU.busy = false; body.replaceChildren(el('div', 'err', 'Не получилось загрузить аудиторию (' + e.message + '). Попробуй ещё раз.')); }
+  }
+  function auGroups(rows, f) {
+    const by = {};
+    rows.forEach(r => { const k = r[f]; const g = by[k] || (by[k] = { k, n: 0, held: 0, paid: 0 }); g.n++; if (r.held) g.held++; if (r.st === 'paid') g.paid++; });
+    return Object.values(by);
+  }
+  function auBars(title, sub, groups, total, note) {
+    const c = el('div', 'card'); const h = el('div', 'card-h'); h.append(el('h2', null, title), el('span', 'small', sub)); c.append(h);
+    const bars = el('div', 'ch-bars'); const max = Math.max(1, ...groups.map(g => g.n));
+    groups.forEach(g => {
+      const r = el('div', 'ch-bar au-bar'); r.style.cursor = 'default';
+      const tr = el('div', 'track'); const ia = el('i', 'a'), ib = el('i', 'b'), ip = el('i', 'p'); tr.append(ia, ib, ip);
+      const cc = el('div', 'c'); cc.append(el('b', null, pcs(g.n, total)), document.createTextNode(' · ' + g.n + ' лид. · ' + g.held + ' встр. · ' + g.paid + ' опл. (' + pcs(g.paid, g.n) + ')'));
+      r.append(el('div', 'n', g.k), cc, tr);
+      requestAnimationFrame(() => { ia.style.width = (g.n / max * 100) + '%'; ib.style.width = (g.held / max * 100) + '%'; ip.style.width = (g.paid / max * 100) + '%'; });
+      bars.append(r);
+    });
+    if (!groups.length) bars.append(el('div', 'ch-empty', 'Пока никто не написал об этом'));
+    const key = el('div', 'ch-key');
+    [['var(--peach-2)', 'лиды'], ['var(--accent)', 'встречи'], ['var(--good)', 'оплаты']].forEach(([cl, t]) => { const s = el('span'); const i = el('i'); i.style.background = cl; s.append(i, document.createTextNode(t)); key.append(s); });
+    c.append(bars, key);
+    if (note) c.append(el('p', 'au-note', note));
+    return c;
+  }
+  function renderAudience() {
+    const body = $('au-body'); const rows = (AU.data.rows || []).filter(r => !AU.ch || r.ch === AU.ch);
+    body.replaceChildren();
+    if (!rows.length) { body.append(el('div', 'card ch-empty', 'За этот период лидов нет')); return; }
+    const known = rows.filter(r => !AU_UNKNOWN.includes(r.sp)), aged = rows.filter(r => r.age !== 'Не указал');
+    const paid = rows.filter(r => r.st === 'paid').length;
+    const k = el('div', 'ch-kpis au-kpis');
+    [[rows.length, 'лидов', AU.ch || 'все каналы'], [known.length, 'назвали сферу', pcs(known.length, rows.length) + ' от лидов'], [aged.length, 'назвали возраст', pcs(aged.length, rows.length) + ' от лидов'], [paid, 'оплат', pcs(paid, rows.length) + ' от лидов']].forEach(([v, l, s]) => {
+      const c = el('div', 'card'); c.append(el('div', 'v num', String(v)), el('div', 'l', l), el('div', 's', s)); k.append(c);
+    });
+    body.append(k);
+    const sp = auGroups(known, 'sp').sort((x, y) => y.n - x.n);
+    const ag = auGroups(aged, 'age').sort((x, y) => AGE_ORDER.indexOf(x.k) - AGE_ORDER.indexOf(y.k));
+    const grid = el('div', 'ch-grid au-grid');
+    grid.append(
+      auBars('Сферы', 'доля от тех, кто назвал сферу', sp, known.length, (rows.length - known.length) + ' лид. не написали, где работают или учатся. Сфера определяется по словам в первых сообщениях, поэтому это примерная картина, а не точный учёт.'),
+      auBars('Возраст', 'доля от тех, кто назвал возраст', ag, aged.length, (rows.length - aged.length) + ' лид. не написали возраст.'));
+    body.append(grid);
+    // таблица по сферам
+    const c3 = el('div', 'card'); c3.style.marginBottom = '18px';
+    const h3 = el('div', 'card-h'); h3.append(el('h2', null, 'Сферы: таблица'), el('span', 'small', 'нажми на заголовок, чтобы отсортировать')); c3.append(h3);
+    const groups = auGroups(rows, 'sp');
+    const cols = [['k', 'Сфера'], ['n', 'Лиды'], ['sh', 'Доля'], ['held', 'Встречи'], ['cv1', 'Лид → встреча'], ['paid', 'Оплаты'], ['cv2', 'Лид → оплата'], ['cv3', 'Встреча → оплата']];
+    const val = (g, c) => c === 'sh' ? g.n : c === 'cv1' ? (g.n ? g.held / g.n : 0) : c === 'cv2' ? (g.n ? g.paid / g.n : 0) : c === 'cv3' ? (g.held ? g.paid / g.held : 0) : g[c];
+    const sorted = [...groups].sort((x, y) => (AU_UNKNOWN.includes(x.k) - AU_UNKNOWN.includes(y.k)) || (AU.sort === 'k' ? x.k.localeCompare(y.k, 'ru') : val(y, AU.sort) - val(x, AU.sort)));
+    const tw = el('div', 'tbl-wrap'), t = el('table', 'tbl'), th = el('thead'), hr = el('tr');
+    cols.forEach(([c, name]) => { const x = el('th', 'sort' + (AU.sort === c ? ' on' : ''), name); x.addEventListener('click', () => { AU.sort = c; renderAudience(); }); hr.append(x); });
+    th.append(hr); t.append(th);
+    const tb = el('tbody');
+    const line = (g, bold) => {
+      const tr = el('tr');
+      const v = { k: g.k, n: g.n, sh: pcs(g.n, rows.length), held: g.held, cv1: pcs(g.held, g.n), paid: g.paid, cv2: pcs(g.paid, g.n), cv3: pcs(g.paid, g.held) };
+      cols.forEach(([c]) => { const td = el('td', null, String(v[c])); if (c === 'k') td.style.fontWeight = '600'; if (bold) td.style.fontWeight = '700'; if (!bold && AU_UNKNOWN.includes(g.k)) td.style.color = 'var(--muted)'; tr.append(td); });
+      return tr;
+    };
+    sorted.forEach(g => tb.append(line(g)));
+    tb.append(line({ k: 'Итого', n: rows.length, held: rows.filter(r => r.held).length, paid }, true));
+    t.append(tb); tw.append(t); c3.append(tw);
+    c3.append(el('p', 'au-note', '«Нет данных» — клиент прислал только стартовую фразу. Переписки сохраняются с 27 октября, по более ранним лидам видно только первое сообщение.'));
+    body.append(c3);
+  }
+  document.querySelectorAll('#au-preset button').forEach(b => b.addEventListener('click', () => {
+    AU.preset = b.dataset.p;
+    document.querySelectorAll('#au-preset button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+    $('au-dates').hidden = AU.preset !== 'custom';
+    if (AU.preset === 'custom' && !AU.from) { AU.from = mskToday().slice(0, 8) + '01'; AU.to = mskToday(); }
+    drawAudience();
+  }));
+  ['au-from', 'au-to'].forEach(id => $(id).addEventListener('change', () => { AU.from = $('au-from').value; AU.to = $('au-to').value; if (AU.from && AU.to) drawAudience(); }));
+  $('au-ch').addEventListener('change', () => { AU.ch = $('au-ch').value; if (AU.data) renderAudience(); });
   /* маркетинг видит только свои вкладки - без цифр продаж */
   async function loadMarketingObjections() {
     try {
@@ -2261,10 +2390,10 @@ a { color: inherit; }
   function marketingMode() {
     ROLE = 'marketing';
     loadMarketingObjections();
-    document.querySelectorAll('.side .nav-btn[data-page]').forEach(b => { b.style.display = ['channels', 'utm', 'objections'].includes(b.dataset.page) ? '' : 'none'; });
+    document.querySelectorAll('.side .nav-btn[data-page]').forEach(b => { b.style.display = ['channels', 'utm', 'audience', 'objections'].includes(b.dataset.page) ? '' : 'none'; });
     document.querySelectorAll('a[href*="docs.google.com/spreadsheets"]').forEach(a => { a.style.display = 'none'; });
     $('sync-btn').style.display = 'none';
-    if (!['channels', 'utm', 'objections'].includes(current)) go('channels'); else go(current);
+    if (!['channels', 'utm', 'audience', 'objections'].includes(current)) go('channels'); else go(current);
   }
   async function loadBook() {
     if (TG_INIT) {
