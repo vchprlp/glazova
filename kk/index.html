@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<title>Чаты · Код Коммерсанта</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+:root{
+  --bg:var(--tg-theme-bg-color,#17212b); --bg2:var(--tg-theme-secondary-bg-color,#0e1621);
+  --text:var(--tg-theme-text-color,#f5f5f5); --hint:var(--tg-theme-hint-color,#7d8b99);
+  --link:var(--tg-theme-link-color,#6ab3f3); --btn:var(--tg-theme-button-color,#5288c1); --btnt:var(--tg-theme-button-text-color,#fff);
+  --line:rgba(128,128,128,.18); --in:var(--tg-theme-section-bg-color,#182533); --out:#2b5278; --red:#e5484d;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;margin:0}
+body{background:var(--bg2);color:var(--text);font:15px/1.35 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;overflow:hidden}
+#app{display:flex;height:100%}
+#side{width:100%;display:flex;flex-direction:column;background:var(--bg);min-width:0}
+#main{display:none;flex:1;flex-direction:column;min-width:0;background:var(--bg2)}
+body.chat #side{display:none} body.chat #main{display:flex}
+@media(min-width:760px){
+  #side{width:340px;flex:none;border-right:1px solid var(--line)}
+  body #side{display:flex!important} #main{display:flex}
+  #back{display:none!important}
+}
+.top{padding:10px 12px 8px;border-bottom:1px solid var(--line)}
+#q{width:100%;border:0;outline:0;border-radius:10px;padding:9px 12px;background:var(--bg2);color:var(--text);font:inherit}
+.chips{display:flex;gap:6px;margin-top:8px;overflow-x:auto;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;border:0;border-radius:16px;padding:6px 12px;background:var(--bg2);color:var(--hint);font:inherit;font-size:13px;cursor:pointer}
+.chip.on{background:var(--btn);color:var(--btnt)}
+.chip b{font-weight:600}
+#list{flex:1;overflow-y:auto;overscroll-behavior:contain}
+.row{display:flex;gap:10px;padding:9px 12px;cursor:pointer;align-items:center}
+.row:active,.row.sel{background:rgba(128,128,128,.14)}
+.ava{flex:none;width:46px;height:46px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:600;font-size:17px}
+.mid{flex:1;min-width:0}
+.l1{display:flex;gap:6px;align-items:baseline}
+.nm{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0}
+.tm{flex:none;font-size:12px;color:var(--hint)}
+.l2{display:flex;gap:6px;align-items:center;margin-top:2px}
+.sn{flex:1;min-width:0;color:var(--hint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:14px}
+.sn i{font-style:normal;color:var(--link)}
+.dot{flex:none;min-width:20px;height:20px;border-radius:10px;background:var(--red);color:#fff;font-size:11px;font-weight:700;display:grid;place-items:center;padding:0 6px}
+.tag{flex:none;font-size:11px;padding:1px 6px;border-radius:6px;background:rgba(128,128,128,.2);color:var(--hint);white-space:nowrap}
+.empty{padding:40px 20px;text-align:center;color:var(--hint)}
+/* чат */
+#head{display:flex;gap:8px;align-items:center;padding:8px 10px;background:var(--bg);border-bottom:1px solid var(--line)}
+#back{border:0;background:none;color:var(--link);font-size:26px;line-height:1;padding:0 6px 4px;cursor:pointer}
+#hinfo{flex:1;min-width:0}
+#hname{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#hsub{font-size:12px;color:var(--hint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hbtn{flex:none;border:0;border-radius:8px;padding:6px 9px;background:var(--bg2);color:var(--link);font:inherit;font-size:13px;cursor:pointer;text-decoration:none}
+#msgs{flex:1;overflow-y:auto;padding:10px 10px 6px;display:flex;flex-direction:column;gap:4px;overscroll-behavior:contain}
+.day{align-self:center;font-size:12px;color:var(--hint);background:rgba(128,128,128,.16);padding:2px 10px;border-radius:10px;margin:8px 0 4px}
+.b{max-width:82%;padding:6px 10px 5px;border-radius:14px;white-space:pre-wrap;word-wrap:break-word;overflow-wrap:anywhere}
+.b.in{align-self:flex-start;background:var(--in);border-bottom-left-radius:4px}
+.b.out{align-self:flex-end;background:var(--out);color:#fff;border-bottom-right-radius:4px}
+.b.del{opacity:.6}
+.b .mt{display:block;text-align:right;font-size:11px;opacity:.65;margin-top:2px}
+.b.pend{opacity:.55}
+.b.fail{outline:1px solid var(--red)}
+#more{align-self:center;border:0;background:none;color:var(--link);font:inherit;font-size:13px;padding:6px;cursor:pointer}
+#place{flex:1;display:grid;place-items:center;color:var(--hint)}
+#form{display:flex;gap:8px;align-items:flex-end;padding:8px 10px calc(8px + env(safe-area-inset-bottom));background:var(--bg);border-top:1px solid var(--line)}
+#inp{flex:1;border:0;outline:0;resize:none;border-radius:18px;padding:9px 14px;background:var(--bg2);color:var(--text);font:inherit;max-height:140px}
+#send{flex:none;width:40px;height:40px;border:0;border-radius:50%;background:var(--btn);color:var(--btnt);font-size:18px;cursor:pointer}
+#send:disabled{opacity:.4}
+#err{display:none;padding:8px 12px;background:var(--red);color:#fff;font-size:13px}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="side">
+    <div class="top">
+      <input id="q" placeholder="Поиск по имени или нику" autocomplete="off">
+      <div class="chips" id="chips"></div>
+    </div>
+    <div id="list"><div class="empty">Загружаю чаты…</div></div>
+  </div>
+  <div id="main">
+    <div id="err"></div>
+    <div id="place">Выбери чат слева</div>
+    <div id="chat" style="display:none;flex:1;flex-direction:column;min-height:0">
+      <div id="head">
+        <button id="back" aria-label="Назад">‹</button>
+        <div id="hinfo"><div id="hname"></div><div id="hsub"></div></div>
+        <button class="hbtn" id="bcard" title="Этап, встреча, отказ - в боте">Карточка</button>
+        <a class="hbtn" id="btg" target="_blank">В Telegram</a>
+      </div>
+      <div id="msgs"></div>
+      <form id="form">
+        <textarea id="inp" rows="1" placeholder="Сообщение клиенту"></textarea>
+        <button id="send" type="submit" disabled aria-label="Отправить">➤</button>
+      </form>
+    </div>
+  </div>
+</div>
+<script>
+(function(){
+  const tg = window.Telegram && window.Telegram.WebApp;
+  const INIT = (tg && tg.initData) || '';
+  const API = 'https://shdqqhzkabivnmqutazh.supabase.co/functions/v1/kk-leads?api=1';
+  const P = new URLSearchParams(location.search);
+  const DEMO = P.has('demo');
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  if (tg) { tg.ready(); tg.expand(); try { tg.disableVerticalSwipes && tg.disableVerticalSwipes(); } catch(e){} }
+
+  let S = { me: null, chats: [], flt: 'wait', mgr: '', q: '', cur: null, msgs: [], more: false, lead: null };
+
+  // ---------- демо-данные для предпросмотра ----------
+  const demo = (() => {
+    const now = Date.now(), m = (min) => new Date(now - min * 60000).toISOString();
+    const chats = [
+      { id: 1, name: 'Юрий', nick: 'yura_auto', stage: 'Первое касание', mgr: 'Макс Р', wait: true, text: '[голосовое]', at: m(3) },
+      { id: 2, name: 'Роман Лунцов', nick: 'lunts', stage: 'Встреча назначена', mgr: 'Никита О', wait: true, text: 'А сколько стоит обучение?', at: m(14), meet: m(-180) },
+      { id: 3, name: 'Faraon', nick: 'f_aric', stage: 'Игнор 1', mgr: 'Денис К', wait: false, mine: true, text: 'Привет, ты на связи?', at: m(40) },
+      { id: 4, name: 'Андрей', nick: '', stage: 'Оффер озвучен', mgr: 'Александр П', wait: true, text: 'Спасибо большое 🤝', at: m(95) },
+      { id: 5, name: 'Леонид Полонец', nick: 'leo_p', stage: 'Первое касание', mgr: 'Макс Р', wait: false, mine: true, text: 'записал тебя на завтра в 16:00 по мск', at: m(300) },
+      { id: 6, name: 'Evgeny', nick: 'evg', stage: 'Оплата', closed: true, mgr: 'Никита О', wait: false, mine: true, text: 'Поздравляю, добро пожаловать!', at: m(1500) },
+    ];
+    const msgs = [
+      { in: true, text: 'Привет, Макс! Хочу попасть на разбор и узнать подробнее о программе Код Коммерсанта', at: m(1600) },
+      { in: false, text: 'привет! рад что написал 🤝\n\nрасскажи в двух словах - откуда ты и чем сейчас занимаешься? и сразу подберём время на разбор', at: m(1570), by: 'Никита О' },
+      { in: true, text: 'Я из Казани, работаю в логистике. Машины перепродавал пару раз для себя', at: m(1500) },
+      { in: false, text: 'отлично, опыт уже есть. завтра в 16:00 по мск удобно?', at: m(1490), by: 'Никита О', del: true },
+      { in: true, text: 'Да, удобно', at: m(60) },
+      { in: true, text: 'А сколько стоит обучение?', at: m(14) },
+    ];
+    return { chats, msgs };
+  })();
+
+  async function call(body) {
+    if (DEMO) {
+      if (body.act === 'list') return { me: { name: 'Слава', admin: true }, chats: demo.chats };
+      if (body.act === 'msgs') { const c = demo.chats.find((x) => x.id == body.lead); return { lead: { id: c.id, name: c.name, nick: c.nick, stage: c.stage, meet: c.meet, link: '#' }, msgs: demo.msgs, more: false }; }
+      return { ok: true };
+    }
+    const r = await fetch(API, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(Object.assign({ init: INIT }, body)), cache: 'no-store' });
+    return await r.json();
+  }
+  function showErr(t) { const e = $('err'); e.textContent = t || ''; e.style.display = t ? 'block' : 'none'; if (t) setTimeout(() => showErr(''), 6000); }
+
+  // ---------- время ----------
+  const MSK = 3 * 3600e3;
+  const d2 = (n) => String(n).padStart(2, '0');
+  const msk = (iso) => new Date(Date.parse(iso) + MSK);
+  const hm = (iso) => { const d = msk(iso); return d2(d.getUTCHours()) + ':' + d2(d.getUTCMinutes()); };
+  const dkey = (iso) => msk(iso).toISOString().slice(0, 10);
+  const MON = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
+  function dayLabel(iso) {
+    const k = dkey(iso), t = dkey(new Date().toISOString()), y = dkey(new Date(Date.now() - 86400e3).toISOString());
+    if (k === t) return 'Сегодня'; if (k === y) return 'Вчера';
+    const d = msk(iso); return d.getUTCDate() + ' ' + MON[d.getUTCMonth()];
+  }
+  function shortTime(iso) {
+    if (!iso) return '';
+    const k = dkey(iso), t = dkey(new Date().toISOString());
+    if (k === t) return hm(iso);
+    const d = msk(iso); return d2(d.getUTCDate()) + '.' + d2(d.getUTCMonth() + 1);
+  }
+  function waitFor(iso) {
+    const min = Math.max(0, Math.round((Date.now() - Date.parse(iso)) / 60000));
+    return min < 60 ? min + ' мин' : min < 1440 ? Math.round(min / 60) + ' ч' : Math.round(min / 1440) + ' дн';
+  }
+
+  // ---------- список ----------
+  const COLORS = ['#e17076','#7bc862','#e5ca77','#65aadd','#a695e7','#ee7aae','#6ec9cb','#faa774'];
+  const ava = (c) => { const n = (c.name || '?').trim(); return '<div class="ava" style="background:' + COLORS[c.id % COLORS.length] + '">' + esc((n[0] || '?').toUpperCase()) + '</div>'; };
+  function filtered() {
+    const q = S.q.toLowerCase().replace(/^@/, '');
+    let L = S.chats.filter((c) => !S.mgr || c.mgr === S.mgr);
+    if (q) L = L.filter((c) => (c.name + ' ' + c.nick).toLowerCase().includes(q));
+    else if (S.flt === 'wait') L = L.filter((c) => c.wait);
+    else if (S.flt === 'work') L = L.filter((c) => !c.closed);
+    if (S.flt === 'wait' && !q) L.sort((a, b) => Date.parse(a.at) - Date.parse(b.at)); // кто ждёт дольше - выше
+    else L.sort((a, b) => Date.parse(b.at) - Date.parse(a.at));
+    return L;
+  }
+  function renderChips() {
+    const base = S.chats.filter((c) => !S.mgr || c.mgr === S.mgr);
+    const n = { wait: base.filter((c) => c.wait).length, work: base.filter((c) => !c.closed).length, all: base.length };
+    let h = [['wait', 'Без ответа'], ['work', 'В работе'], ['all', 'Все']].map(([k, t]) => '<button class="chip' + (S.flt === k ? ' on' : '') + '" data-f="' + k + '">' + t + ' <b>' + n[k] + '</b></button>').join('');
+    if (S.me && S.me.admin) {
+      const ms = [...new Set(S.chats.map((c) => c.mgr).filter(Boolean))].sort();
+      h += '<span style="flex:none;width:1px;background:var(--line);margin:2px 2px"></span>' + ms.map((m) => '<button class="chip' + (S.mgr === m ? ' on' : '') + '" data-m="' + esc(m) + '">' + esc(m.split(' ')[0]) + '</button>').join('');
+    }
+    $('chips').innerHTML = h;
+  }
+  function renderList() {
+    renderChips();
+    const L = filtered();
+    if (!L.length) { $('list').innerHTML = '<div class="empty">' + (S.q ? 'Никого не нашёл' : S.flt === 'wait' ? 'Все отвечены 👌' : 'Чатов пока нет') + '</div>'; return; }
+    $('list').innerHTML = L.map((c) =>
+      '<div class="row' + (S.cur === c.id ? ' sel' : '') + '" data-id="' + c.id + '">' + ava(c) +
+      '<div class="mid"><div class="l1"><span class="nm">' + esc(c.name) + '</span><span class="tm">' + shortTime(c.at) + '</span></div>' +
+      '<div class="l2"><span class="sn">' + (c.mine ? '<i>Мы: </i>' : '') + esc(c.text || 'нет сообщений') + '</span>' +
+      (S.me && S.me.admin && !S.mgr && c.mgr ? '<span class="tag">' + esc(c.mgr.split(' ')[0]) + '</span>' : '') +
+      (c.wait ? '<span class="dot" title="ждёт ответа">' + waitFor(c.at) + '</span>' : '') + '</div></div></div>').join('');
+  }
+  async function loadList(silent) {
+    try {
+      const r = await call({ act: 'list' });
+      if (r.error) { if (!silent) $('list').innerHTML = '<div class="empty">' + esc(r.error) + '</div>'; return; }
+      S.me = r.me; S.chats = r.chats || [];
+      if (!silent && !S.chats.some((c) => c.wait)) S.flt = 'work';
+      renderList();
+    } catch (e) { if (!silent) $('list').innerHTML = '<div class="empty">Нет связи. Потяни вниз или открой заново</div>'; }
+  }
+
+  // ---------- чат ----------
+  function renderMsgs(keep) {
+    const box = $('msgs'), atBottom = box.scrollHeight - box.scrollTop - box.clientHeight < 80, oldH = box.scrollHeight;
+    let h = S.more ? '<button id="more">Показать раньше</button>' : '', day = '';
+    for (const m of S.msgs) {
+      const k = dkey(m.at);
+      if (k !== day) { day = k; h += '<div class="day">' + dayLabel(m.at) + '</div>'; }
+      h += '<div class="b ' + (m.in ? 'in' : 'out') + (m.del ? ' del' : '') + (m.pend ? ' pend' : '') + (m.fail ? ' fail' : '') + '">' + esc(m.text || '[без текста]') +
+        '<span class="mt">' + (m.del ? 'удалено в Telegram · ' : '') + (m.fail ? 'не отправлено · ' : '') + (!m.in && m.by ? esc(m.by.split(' ')[0]) + ' · ' : '') + hm(m.at) + '</span></div>';
+    }
+    box.innerHTML = h || '<div class="empty">Переписки пока нет</div>';
+    if (keep === 'top') box.scrollTop = box.scrollHeight - oldH; else if (keep !== 'stay' || atBottom) box.scrollTop = box.scrollHeight;
+  }
+  function renderHead() {
+    const l = S.lead; if (!l) return;
+    $('hname').textContent = l.name + (l.nick ? '  @' + l.nick : '');
+    $('hsub').textContent = l.stage + (l.meet && l.stage === 'Встреча назначена' ? ' · встреча ' + dayLabel(l.meet).toLowerCase() + ' в ' + hm(l.meet) + ' мск' : '');
+    $('btg').href = l.link && l.link !== '#' ? l.link : 'javascript:void 0';
+  }
+  async function openChat(id) {
+    S.cur = id; S.msgs = []; S.lead = null; S.more = false;
+    const c = S.chats.find((x) => x.id === id);
+    document.body.classList.add('chat');
+    $('place').style.display = 'none'; $('chat').style.display = 'flex';
+    $('hname').textContent = c ? c.name : ''; $('hsub').textContent = c ? c.stage : '';
+    $('msgs').innerHTML = '<div class="empty">Загружаю…</div>';
+    if (tg && tg.BackButton) tg.BackButton.show();
+    renderList();
+    await loadMsgs(false);
+    if (matchMedia('(min-width:760px)').matches) $('inp').focus();
+  }
+  async function loadMsgs(silent) {
+    const id = S.cur; if (!id) return;
+    try {
+      const r = await call({ act: 'msgs', lead: id });
+      if (id !== S.cur) return;
+      if (r.error) { if (!silent) $('msgs').innerHTML = '<div class="empty">' + esc(r.error) + '</div>'; return; }
+      const older = S.msgs.filter((m) => r.msgs.length && Date.parse(m.at) < Date.parse(r.msgs[0].at) && !m.pend);
+      const pend = S.msgs.filter((m) => m.pend || m.fail);
+      const sig = (L) => L.length + '|' + (L.length ? L[L.length - 1].at + L[L.length - 1].text : '') + '|' + L.filter((m) => m.del).length;
+      const next = older.concat(r.msgs).concat(pend.filter((p) => p.fail || !r.msgs.some((m) => !m.in && m.text === p.text && Date.parse(m.at) >= Date.parse(p.at) - 5000)));
+      const changed = sig(next) !== sig(S.msgs) || !S.lead;
+      S.lead = r.lead; if (!older.length) S.more = r.more;
+      renderHead();
+      if (changed) { S.msgs = next; renderMsgs(silent ? 'stay' : ''); }
+    } catch (e) { if (!silent) $('msgs').innerHTML = '<div class="empty">Нет связи</div>'; }
+  }
+  async function loadOlder() {
+    if (!S.msgs.length) return;
+    const r = await call({ act: 'msgs', lead: S.cur, before: S.msgs[0].at });
+    if (r.error) return showErr(r.error);
+    S.msgs = r.msgs.concat(S.msgs); S.more = r.more; renderMsgs('top');
+  }
+  function closeChat() {
+    S.cur = null; document.body.classList.remove('chat');
+    $('chat').style.display = 'none'; $('place').style.display = 'grid';
+    if (tg && tg.BackButton) tg.BackButton.hide();
+    renderList(); loadList(true);
+  }
+  async function send() {
+    const inp = $('inp'), text = inp.value.trim(), id = S.cur;
+    if (!text || !id) return;
+    const m = { in: false, text, at: new Date().toISOString(), by: S.me ? S.me.name : '', pend: true };
+    S.msgs.push(m); inp.value = ''; grow(); $('send').disabled = true; renderMsgs('');
+    try {
+      const r = await call({ act: 'send', lead: id, text });
+      if (r.error) { m.pend = false; m.fail = true; showErr('Не отправилось: ' + r.error); }
+      else { m.pend = false; const c = S.chats.find((x) => x.id === id); if (c) { c.wait = false; c.mine = true; c.text = text; c.at = m.at; } }
+    } catch (e) { m.pend = false; m.fail = true; showErr('Нет связи, сообщение не отправлено'); }
+    if (id === S.cur) renderMsgs(''); renderList();
+  }
+  function grow() { const i = $('inp'); i.style.height = 'auto'; i.style.height = Math.min(140, i.scrollHeight) + 'px'; $('send').disabled = !i.value.trim(); }
+
+  // ---------- события ----------
+  $('list').addEventListener('click', (e) => { const r = e.target.closest('.row'); if (r) openChat(Number(r.dataset.id)); });
+  $('chips').addEventListener('click', (e) => {
+    const b = e.target.closest('.chip'); if (!b) return;
+    if (b.dataset.f) S.flt = b.dataset.f; else S.mgr = S.mgr === b.dataset.m ? '' : b.dataset.m;
+    renderList();
+  });
+  $('q').addEventListener('input', (e) => { S.q = e.target.value.trim(); renderList(); });
+  $('back').addEventListener('click', closeChat);
+  if (tg && tg.BackButton) tg.BackButton.onClick(closeChat);
+  $('msgs').addEventListener('click', (e) => { if (e.target.id === 'more') loadOlder(); });
+  $('form').addEventListener('submit', (e) => { e.preventDefault(); send(); });
+  $('inp').addEventListener('input', grow);
+  $('inp').addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey && matchMedia('(min-width:760px)').matches) { e.preventDefault(); send(); } });
+  $('bcard').addEventListener('click', async () => {
+    const r = await call({ act: 'card', lead: S.cur });
+    if (r.error) return showErr(r.error);
+    if (tg && tg.close) tg.close(); else showErr('Карточка отправлена в бота');
+  });
+  $('btg').addEventListener('click', (e) => { const u = S.lead && S.lead.link; if (tg && u && u.startsWith('https://t.me/')) { e.preventDefault(); tg.openTelegramLink(u); } });
+
+  // ---------- запуск и обновление ----------
+  (async () => {
+    await loadList(false);
+    const lead = Number(P.get('lead') || (tg && tg.initDataUnsafe && tg.initDataUnsafe.start_param) || 0);
+    if (lead) openChat(lead);
+    else if (DEMO && matchMedia('(min-width:760px)').matches) openChat(2);
+    setInterval(() => { if (document.hidden) return; if (S.cur) loadMsgs(true); }, 4000);
+    setInterval(() => { if (!document.hidden) loadList(true); }, 12000);
+  })();
+})();
+</script>
+</body>
+</html>
