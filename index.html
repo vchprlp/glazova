@@ -832,6 +832,12 @@ a { color: inherit; }
 .fn-kpi.main { background: var(--ink); color: var(--card); }
 .fn-kpi.main .label, .fn-kpi.main .fn-kpi-sub { color: color-mix(in srgb, var(--card) 70%, transparent); }
 .fn-kpi .delta { font-size: 12px; font-weight: 600; }
+.ad-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.ad-kpis > div { display: flex; flex-direction: column; gap: 4px; padding: 14px 16px; border: 1px solid var(--line, rgba(127,127,127,.2)); border-radius: 14px; }
+.ad-kpis > div.main { background: var(--ink); color: var(--card); border-color: transparent; }
+.ad-kpis > div.main .label, .ad-kpis > div.main .fn-kpi-sub { color: color-mix(in srgb, var(--card) 70%, transparent); }
+.ad-kpis b { font-size: 26px; font-weight: 600; letter-spacing: -0.03em; line-height: 1.1; }
+@media (max-width: 760px) { .ad-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } .ad-kpis b { font-size: 21px; } }
 .fn-kpi-sub { font-size: 12.5px; color: var(--muted); }
 .fn-top { grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr) !important; margin-bottom: 22px; }
 .fp-lead { margin: 0 0 16px; font-size: 14.5px; line-height: 1.45; color: var(--ink-2); }
@@ -1112,6 +1118,7 @@ a { color: inherit; }
         <div class="card" data-anim style="--i:3"><div class="card-h"><h2>Где теряем людей</h2><span class="small" id="fn-path-sub"></span></div><div id="fn-path"></div></div>
         <div class="card" data-anim style="--i:4"><div class="card-h"><h2>План</h2><span class="small" id="fn-plan-sub"></span></div><div class="storage" id="fn-plan"></div></div>
       </div>
+      <div class="card" data-anim style="--i:5" id="ad-card" hidden><div class="card-h"><h2>Стоимость лида</h2><span class="small" id="ad-sub"></span></div><div class="ad-kpis" id="ad-kpis"></div><p class="fn-note" id="ad-note"></p></div>
       <div class="card" data-anim style="--i:5"><div class="card-h"><h2>Воронка по менеджерам</h2><span class="small" id="fn-tbl-sub"></span></div>
         <div class="tbl-wrap fn-tbl-wrap"><table class="tbl" id="fn-tbl"><thead><tr><th>Менеджер</th><th>Лиды</th><th>Назначено</th><th>Проведено</th><th>Оплаты</th><th>Лид → встреча</th><th>Встреча → оплата</th><th>Чистый кэш</th><th>Средний чек</th><th title="От создания сделки в amoCRM (первое сообщение) до оплаты, медиана">Цикл сделки</th></tr></thead><tbody></tbody></table></div>
         <div class="fn-cards" id="fn-cards"></div>
@@ -1826,7 +1833,38 @@ a { color: inherit; }
     drawFnPlan(cur, R);
     $('fn-tbl-sub').textContent = periodName;
     drawFnTable(cur, keys);
+    drawAdCost();
     if (!COH && (ROLE === 'admin' || ROLE === 'boss')) loadCohort().then(() => { if (current === 'funnel' && seq === fnSeq) drawFnTable(cur, keys); });
+  }
+  /* Стоимость лида. ТЕСТ: бюджет вписан руками со скрина рекламного кабинета (ТГ-бот, Instagram, метка inst2) на 16.11.
+     Целевой лид: не в ЗИН (не закрыт) и по возрасту подходит - до 45 лет с опытом в IT, до 40 без опыта.
+     Если возраст клиент не написал - считаем целевым (отсеять не можем). */
+  const AD_TEST = { from: '2026-11-01', to: '2026-11-16', usd: 4081.31, act: 4447, sales: 10, ch: 'Инста рабочая', label: 'Instagram, метка inst2' };
+  let AD_ROWS = null, AD_LOAD = null;
+  const usd = x => isFinite(x) ? '$' + x.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '–';
+  async function drawAdCost() {
+    const card = $('ad-card'); if (!card) return;
+    if (!(ROLE === 'admin' || ROLE === 'boss') || !(META && META.live)) { card.hidden = true; return; }
+    card.hidden = false;
+    const A = AD_TEST, d = s => s.slice(8, 10) + '.' + s.slice(5, 7);
+    $('ad-sub').textContent = 'тест · ' + A.label + ' · ' + d(A.from) + '–' + d(A.to);
+    if (!AD_ROWS) {
+      $('ad-kpis').replaceChildren(el('span', 'small', 'Считаю…'));
+      AD_LOAD = AD_LOAD || fetch(SB_URL + '/functions/v1/dash-data?view=audience&from=' + A.from + '&to=' + A.to, { headers: await authHeaders(), cache: 'no-store' }).then(r => r.json()).then(j => { AD_ROWS = j.rows || []; }).catch(() => { AD_ROWS = []; });
+      await AD_LOAD; if (current !== 'funnel') return;
+    }
+    const rows = AD_ROWS.filter(r => r.ch === A.ch);
+    const hasAge = rows.some(r => 'zin' in r);
+    const zin = rows.filter(r => r.zin).length;
+    const old = rows.filter(r => !r.zin && r.a != null && (r.a > 45 || (r.a > 40 && r.sp !== 'IT и около'))).length;
+    const target = rows.length - zin - old, held = rows.filter(r => r.held).length;
+    const box = $('ad-kpis'); box.replaceChildren();
+    [['Бюджет', usd(A.usd), nf.format(A.act) + ' ' + plural(A.act, 'активация', 'активации', 'активаций') + ' бота по ' + usd(A.usd / A.act)],
+     ['Цена лида', usd(A.usd / rows.length), nf.format(rows.length) + ' ' + plural(rows.length, 'лид', 'лида', 'лидов') + ' написали в чат'],
+     ['Цена целевого лида', hasAge ? usd(A.usd / target) : '–', hasAge ? nf.format(target) + ' ' + plural(target, 'целевой', 'целевых', 'целевых') + ' из ' + nf.format(rows.length) : 'нужно обновить dash-data', true],
+     ['Цена встречи', usd(A.usd / held), nf.format(held) + ' ' + plural(held, 'пришёл', 'пришли', 'пришли') + ' на встречу']
+    ].forEach(([t, v, sub, main]) => { const c = el('div', main ? 'main' : ''); c.append(el('span', 'label', t), el('b', 'num', v), el('span', 'fn-kpi-sub', sub)); box.append(c); });
+    $('ad-note').textContent = hasAge ? 'Не целевые: ' + nf.format(zin) + ' в ЗИН и ' + nf.format(old) + ' по возрасту (старше 45, или старше 40 без опыта в IT). Возраст и опыт бот берёт из первых сообщений клиента, примерно; кто возраст не написал, считается целевым. Бюджет пока вписан вручную со скрина на ' + d(A.to) + ', период выше на него не влияет.' : '';
   }
   /* Путь клиента: сколько дошло на каждом шаге и сколько людей потеряли между шагами */
   function drawFnPath(cur, prev, prevLabel) {
