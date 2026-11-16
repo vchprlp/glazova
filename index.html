@@ -867,6 +867,8 @@ a { color: inherit; }
 @media (max-width: 520px) { .fn-kpis { gap: 10px; } .fn-kpi { padding: 14px; } .fn-kpi > b { font-size: 24px; } .fp-row { grid-template-columns: minmax(0, 1fr) 56px; } .fp-bar { grid-column: 1 / -1; height: 18px; } .fp-loss { margin-left: 8px; flex-wrap: wrap; } .fc-g { gap: 6px 12px; } .fc-g div { flex-direction: column; gap: 1px; } }
 @media (max-width: 640px) { .side { max-width: calc(100vw - 20px); overflow-x: auto; scrollbar-width: none; } .side::-webkit-scrollbar { display: none; } .side .theme-btn { display: none; } }
 [hidden].ms-box, [hidden].ch-dates { display: none !important; }
+.per { margin-bottom: 18px; }
+.per .per-seg { flex-wrap: wrap; max-width: 100%; overflow: visible; border-radius: 18px; height: auto; }
 /* Когорты */
 #co-body { display: flex; flex-direction: column; gap: 22px; }
 .co-lead { margin: 0; font-size: 16px; line-height: 1.5; max-width: 860px; color: var(--ink-2); }
@@ -1012,7 +1014,8 @@ a { color: inherit; }
     </section>
 
     <section class="page" id="page-managers" aria-label="Менеджеры">
-      <div class="ph" data-anim style="--i:0"><div><h1>Менеджеры</h1></div><div class="ph-tools page-ms"><span class="chip neutral mswitch ms-box" hidden><button type="button" data-step="-1" aria-label="Предыдущий месяц">‹</button><b class="ms-name"></b><button type="button" data-step="1" aria-label="Следующий месяц">›</button></span></div></div>
+      <div class="ph" data-anim style="--i:0"><div><h1>Менеджеры</h1></div></div>
+      <div class="ch-tools per" data-per data-anim style="--i:0"></div>
       <div class="mgr-switch" id="mgr-switch" role="group" aria-label="Выбери менеджера" data-anim style="--i:0"></div>
       <div class="card profile" data-anim style="--i:1">
         <div class="profile-top"></div>
@@ -1037,9 +1040,10 @@ a { color: inherit; }
         <div><h1>Оплаты</h1><p id="pay-sub"></p></div>
         <div class="ph-tools">
           <div class="seg dark" role="group" aria-label="Источник" id="src-seg"></div>
-          <button class="gray-btn" type="button" id="month-btn"><svg class="ico" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="3"/><path d="M4 10h16M9 3v4M15 3v4"/></svg><span></span></button>
+
         </div>
       </div>
+      <div class="ch-tools per" data-per data-anim style="--i:1"></div>
       <div class="pay-layout">
         <div><div class="pay-grid" id="pay-grid"></div><button class="pill-btn more" type="button" id="pay-more" hidden></button></div>
         <div class="card coll" data-anim style="--i:2">
@@ -1102,13 +1106,7 @@ a { color: inherit; }
     </section>
     <section class="page" id="page-funnel" aria-label="Воронка">
       <div class="ph" data-anim style="--i:0"><div><h1>Воронка</h1><p id="fn-sub"></p></div></div>
-      <div class="ch-tools" data-anim style="--i:1">
-        <div class="seg" id="fn-preset" role="group" aria-label="Период">
-          <button type="button" data-p="month" aria-pressed="true">Месяц</button><button type="button" data-p="q">Квартал</button><button type="button" data-p="all">Всё время</button><button type="button" data-p="custom">Свои месяцы</button>
-        </div>
-        <span class="chip neutral mswitch ms-box fn-ms" hidden><button type="button" data-step="-1" aria-label="Предыдущий месяц">‹</button><b class="ms-name"></b><button type="button" data-step="1" aria-label="Следующий месяц">›</button></span>
-        <div class="ch-dates" id="fn-dates" hidden><label class="au-sel"><span>С</span><select id="fn-from" aria-label="С какого месяца"></select></label><label class="au-sel"><span>по</span><select id="fn-to" aria-label="По какой месяц"></select></label></div>
-      </div>
+      <div class="ch-tools per" data-per data-anim style="--i:1"></div>
       <div class="fn-kpis" id="fn-kpis" data-anim style="--i:2"></div>
       <div class="fn-top">
         <div class="card" data-anim style="--i:3"><div class="card-h"><h2>Где теряем людей</h2><span class="small" id="fn-path-sub"></span></div><div id="fn-path"></div></div>
@@ -1421,8 +1419,104 @@ a { color: inherit; }
     markTop();
   }
 
+  /* ---------- Свой период: общий для Менеджеров, Оплат и Воронки ---------- */
+  let ALL = null; // все месяцы по дням: { days, mdays, pays, plans }
+  const PER = { p: 'month', from: null, to: null };
+  const PRESETS = [['today', 'Сегодня'], ['yday', 'Вчера'], ['3', '3 дня'], ['7', '7 дней'], ['15', '15 дней'], ['month', 'Месяц'], ['prev', 'Прошлый месяц'], ['q', 'Квартал'], ['custom', 'Свои даты']];
+  const addDays = (iso, n) => { const d = new Date(iso + 'T12:00:00Z'); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); };
+  const monthStart = iso => iso.slice(0, 8) + '01';
+  const monthEndOf = iso => new Date(Date.UTC(+iso.slice(0, 4), +iso.slice(5, 7), 0)).toISOString().slice(0, 10);
+  const spanDays = (a, b) => Math.round((Date.parse(b) - Date.parse(a)) / 864e5) + 1;
+  const rangeLabel = (a, b) => a === b ? dlabel(a) : (a.slice(0, 7) === b.slice(0, 7) ? Number(a.slice(8, 10)) + '–' + dlabel(b) : dlabel(a) + ' – ' + dlabel(b));
+  /* Сборка всех месяцев из таблицы: дни отдела, дни менеджеров, оплаты, планы */
+  async function buildAll(book, months) {
+    const out = { days: [], mdays: [], pays: [], plans: {} };
+    for (const k of months) {
+      try { const D = await monthData(book, Number(k.slice(0, 4)), Number(k.slice(5, 7))); out.days.push(...D.d); out.pays.push(...D.p); out.plans[k] = D.plan; } catch (e) {}
+    }
+    if (book.mgrDays) out.mdays = book.mgrDays.map(r => ({ m: SHORT_MGR[r.m] || r.m, date: r.d, leads: r.l, booked: r.b, held: r.h }));
+    else Object.keys(book.sheets).forEach(name => {
+      const mm = name.match(/^(.+) (Январь|Февраль|Март|Апрель|Май|Июнь|Июль|Август|Сентябрь|Октябрь|Ноябрь|Декабрь)$/);
+      if (!mm || /^(Оплаты|Сводка дни|Сводная общая|KPI|Выходные)$/.test(mm[1])) return;
+      const g = book.z ? null : book.sheets[name]; if (!g || !g.length || txt(g[0][1]).trim() !== 'Лидов взято') return;
+      g.slice(1).forEach(r => { const d = iso(r[0]); if (!d) return; const l = num(r[1]), b = num(r[3]), h = num(r[4]); if (l || b || h) out.mdays.push({ m: SHORT_MGR[mm[1]] || mm[1], date: d, leads: l, booked: b, held: h }); });
+    });
+    return out;
+  }
+  /* Границы периода и период для сравнения */
+  function perRange() {
+    const asof = M.asof, view = META && META.view ? META.view : M.cur, live = !!(META && META.live);
+    const end = live ? asof : monthEndOf(view + '-01');
+    let a, b, pa, pb, prevName;
+    const p = PER.p;
+    if (p === 'today') { a = b = asof; }
+    else if (p === 'yday') { a = b = addDays(asof, -1); }
+    else if (p === '3' || p === '7' || p === '15') { b = asof; a = addDays(asof, 1 - Number(p)); }
+    else if (p === 'prev') { const s = monthStart(addDays(view + '-01', -1)); a = s; b = monthEndOf(s); }
+    else if (p === 'q') { b = end; const d = new Date(view + '-01T12:00:00Z'); d.setUTCMonth(d.getUTCMonth() - 2); a = d.toISOString().slice(0, 10); }
+    else if (p === 'custom' && PER.from && PER.to) { a = PER.from < PER.to ? PER.from : PER.to; b = PER.from < PER.to ? PER.to : PER.from; }
+    else { a = view + '-01'; b = end; }
+    if (p === 'month' || (p === 'custom' && false)) { // месяц: те же дни прошлого месяца
+      const ps = monthStart(addDays(a, -1)); pa = ps; const n = spanDays(a, b); pb = addDays(ps, Math.min(n, spanDays(ps, monthEndOf(ps))) - 1);
+      prevName = 'те же дни ' + MON[Number(ps.slice(5, 7)) - 1];
+    } else if (p === 'prev' || p === 'q') {
+      const n = p === 'q' ? 3 : 1; const d = new Date(a + 'T12:00:00Z'); d.setUTCMonth(d.getUTCMonth() - n); pa = d.toISOString().slice(0, 10); pb = addDays(a, -1);
+      prevName = p === 'q' ? 'прошлый квартал' : NOM[Number(pa.slice(5, 7)) - 1];
+    } else { const n = spanDays(a, b); pb = addDays(a, -1); pa = addDays(pb, 1 - n); prevName = 'прошлые ' + n + ' ' + plural(n, 'день', 'дня', 'дней'); if (n === 1) prevName = 'день раньше'; }
+    const label = p === 'month' ? cap(NOM[Number(a.slice(5, 7)) - 1]) + (live ? ', 1–' + dlabel(b) : ' ' + a.slice(0, 4)) : p === 'prev' ? cap(NOM[Number(a.slice(5, 7)) - 1]) + ' ' + a.slice(0, 4) : rangeLabel(a, b);
+    return { from: a, to: b, pf: pa, pt: pb, label, prevName };
+  }
+  /* Цифры за период: лиды и встречи по дням, оплаты по журналу */
+  function perStats(a, b) {
+    const S = { leads: 0, booked: 0, held: 0, paid: 0, cash: 0, plan: 0, mg: {}, pays: [], all: [] };
+    if (!ALL) return S;
+    ALL.days.forEach(r => { if (r.date >= a && r.date <= b) { S.leads += r.leads; S.booked += r.booked; S.held += r.held; } });
+    ALL.mdays.forEach(r => { if (r.date >= a && r.date <= b) { const x = S.mg[r.m] = S.mg[r.m] || { leads: 0, booked: 0, held: 0 }; x.leads += r.leads; x.booked += r.booked; x.held += r.held; } });
+    ALL.pays.forEach(p => { if (p.date >= a && p.date <= b) { S.all.push(p); if (p.kind !== 'возврат') { S.paid++; S.cash += p.net; S.pays.push(p); } } });
+    for (let d = a; d <= b; d = addDays(d, 1)) { const pl = ALL.plans[d.slice(0, 7)]; if (pl && pl.days_total) S.plan += pl.plan / pl.days_total; }
+    S.all.sort((x, y) => y.date.localeCompare(x.date) || Number(y.price) - Number(x.price));
+    return S;
+  }
+  /* Переключатель периода: один и тот же на всех страницах, где он есть */
+  function drawPer() {
+    document.querySelectorAll('[data-per]').forEach(box => {
+      if (!box.dataset.built) {
+        box.dataset.built = '1';
+        const seg = el('div', 'seg per-seg'); seg.setAttribute('role', 'group'); seg.setAttribute('aria-label', 'Период');
+        PRESETS.forEach(([k, t]) => { const b = el('button', null, t); b.type = 'button'; b.dataset.p = k; b.addEventListener('click', () => { PER.p = k; if (k === 'custom' && !PER.from) { const r = perRange(); PER.from = r.from; PER.to = r.to; } redrawPer(); }); seg.append(b); });
+        const dates = el('div', 'ch-dates per-dates'); const f = el('input'), t = el('input'); f.type = t.type = 'date'; f.setAttribute('aria-label', 'С'); t.setAttribute('aria-label', 'По');
+        f.addEventListener('change', () => { PER.from = f.value; redrawPer(); }); t.addEventListener('change', () => { PER.to = t.value; redrawPer(); });
+        dates.append(f, el('span', null, '—'), t);
+        box.append(seg, dates);
+      }
+      box.querySelectorAll('.per-seg button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.p === PER.p)));
+      const d = box.querySelector('.per-dates'); d.hidden = PER.p !== 'custom';
+      if (ALL) { const lo = ALL.days.length ? ALL.days.reduce((m, r) => r.date < m ? r.date : m, ALL.days[0].date) : ''; d.querySelectorAll('input').forEach(i => { i.min = lo; i.max = M.asof; }); }
+      const [f, t] = d.querySelectorAll('input'); if (PER.from) f.value = PER.from; if (PER.to) t.value = PER.to;
+    });
+  }
+  function redrawPer() { drawPer(); animateNums = true; grown = false; if (current === 'managers') drawManagers(); if (current === 'payments') { payLimit = 12; drawPayments(); } if (current === 'funnel') drawFunnel(); }
+  /* Менеджеры за период */
+  function mgrModel() {
+    const r = perRange(), S = perStats(r.from, r.to), P = perStats(r.pf, r.pt);
+    const names = [...new Set(Object.keys(S.mg).concat(S.all.map(p => p.manager)))];
+    const abc = [...new Set(ALL ? ALL.mdays.map(x => x.m).concat(ALL.pays.map(x => x.manager)) : names)].sort((a, b) => a.localeCompare(b, 'ru'));
+    const colorOf = n => (M.colorOf && M.colorOf[n]) || MGR_COLORS[Math.max(0, abc.indexOf(n)) % MGR_COLORS.length];
+    const ms = names.map(n => {
+      const k = S.mg[n] || { leads: 0, booked: 0, held: 0 }, mine = S.pays.filter(p => p.manager === n), c = mine.reduce((s, p) => s + p.net, 0);
+      const cs = P.pays.filter(p => p.manager === n).reduce((s, p) => s + p.net, 0);
+      const wk = [0, 0, 0, 0, 0, 0, 0]; mine.forEach(p => { wk[(new Date(p.date + 'T12:00:00').getDay() + 6) % 7] += Number(p.net); });
+      const src = {}; mine.forEach(p => { src[p.source] = (src[p.source] || 0) + 1; });
+      return { name: n, color: colorOf(n), cash: c, paid: mine.length, held: k.held, leads: k.leads, booked: k.booked, cashS: cs, vs: cs ? c / cs - 1 : 0, cvh: k.held ? mine.length / k.held : 0, avg: mine.length ? c / mine.length : 0, week: wk, src, pays: S.all.filter(p => p.manager === n) };
+    }).filter(m => m.leads || m.held || m.paid);
+    [...ms].sort((a, b) => b.cash - a.cash).forEach((m, i) => { m.rank = i + 1; });
+    return { r, managers: ms, cash: S.cash, cvh: S.held ? S.paid / S.held : 0, avg: S.paid ? S.cash / S.paid : 0, leads: S.leads };
+  }
   function drawManagers() {
-    const ms = [...M.managers].sort((a, b) => a.rank - b.rank);
+    drawPer();
+    const PM = mgrModel(), R = PM.r;
+    const ms = [...PM.managers].sort((a, b) => a.rank - b.rank);
+    if (!ms.length) { $('p-name').textContent = 'За этот период данных нет'; return; }
     if (!mgrSel || !ms.some(m => m.name === mgrSel)) mgrSel = ms[0].name;
     const m = ms.find(x => x.name === mgrSel);
     const sw = $('mgr-switch'); sw.replaceChildren();
@@ -1435,16 +1529,16 @@ a { color: inherit; }
     $('p-name').textContent = m.name;
     $('p-role').textContent = 'Менеджер отдела продаж · ' + m.rank + ' место из ' + ms.length + ' по кэшу';
     const meta = $('p-meta'); meta.replaceChildren();
-    [[SVG.pin, m.leads + ' ' + plural(m.leads, 'лид', 'лида', 'лидов')], [SVG.cal, m.booked + ' назначено · ' + m.held + ' ' + plural(m.held, 'проведена', 'проведено', 'проведено')], [SVG.cash, pct(m.cash / M.cash, 0) + ' кэша отдела']].forEach(([ic, t]) => { const s = el('span'); s.innerHTML = ic; s.append(document.createTextNode(t)); meta.append(s); });
-    const good = m.cvh >= M.cvh, st = $('p-status');
+    [[SVG.pin, m.leads + ' ' + plural(m.leads, 'лид', 'лида', 'лидов')], [SVG.cal, m.booked + ' назначено · ' + m.held + ' ' + plural(m.held, 'проведена', 'проведено', 'проведено')], [SVG.cash, pct(PM.cash ? m.cash / PM.cash : 0, 0) + ' кэша отдела']].forEach(([ic, t]) => { const s = el('span'); s.innerHTML = ic; s.append(document.createTextNode(t)); meta.append(s); });
+    const good = m.cvh >= PM.cvh, st = $('p-status');
     st.className = 'chip ' + (good ? 'good' : 'bad'); st.replaceChildren(el('i'), document.createTextNode(good ? 'Конверсия выше отдела' : 'Конверсия ниже отдела'));
 
     const k = $('p-kpi'); k.replaceChildren();
-    const lab = 'к 1–' + M.dp + ' ' + W.P.sgen;
-    [[SVG.cash, 'Кэш', m.cash, moneyShort, (m.cashS ? signed(m.vs) + ' ' + lab : 'в ' + W.P.prep + ' за те дни оплат нет')],
+    const lab = 'к периоду «' + R.prevName + '»';
+    [[SVG.cash, 'Кэш', m.cash, moneyShort, (m.cashS ? signed(m.vs) + ' ' + lab : 'в прошлом периоде оплат нет')],
      [SVG.check, 'Оплаты', m.paid, v => String(Math.round(v)), 'из ' + m.held + ' ' + plural(m.held, 'встречи', 'встреч', 'встреч')],
-     [SVG.conv, 'Встреча → оплата', m.cvh, v => pct(v), 'у отдела ' + pct(M.cvh)],
-     [SVG.tag, 'Средний чек', m.avg, v => moneyShort(v) + ' ₽', 'у отдела ' + moneyShort(M.avg) + ' ₽']].forEach(([ic, cap, v, fmt, sub], i) => {
+     [SVG.conv, 'Встреча → оплата', m.cvh, v => pct(v), 'у отдела ' + pct(PM.cvh)],
+     [SVG.tag, 'Средний чек', m.avg, v => moneyShort(v) + ' ₽', 'у отдела ' + moneyShort(PM.avg) + ' ₽']].forEach(([ic, cap, v, fmt, sub], i) => {
       const c = el('div', 'card lift kpi'); c.dataset.anim = ''; c.style.setProperty('--i', String(2 + i));
       const h = el('div', 'k-h'); const ico = el('span', 'k-ico'); ico.innerHTML = ic; h.append(ico, document.createTextNode(cap));
       const val = el('div', 'k-v num'); countUp(val, v, fmt);
@@ -1454,17 +1548,17 @@ a { color: inherit; }
     const ab = $('p-about'); ab.replaceChildren();
     const para = parts => { const p = el('p'); parts.forEach(x => p.append(typeof x === 'string' ? document.createTextNode(x) : x)); ab.append(p); };
     const B = t => el('b', null, t);
-    para([m.name + ' на ', B(m.rank + ' месте'), ' в команде: ' + money(m.cash) + ', это ' + pct(m.cash / M.cash, 0) + ' кэша отдела за ' + W.C.nom + '.']);
-    para(['Из встречи в оплату доходит ', B(pct(m.cvh)), m.cvh >= M.cvh ? ', выше, чем у отдела (' + pct(M.cvh) + ').' : ', ниже, чем у отдела (' + pct(M.cvh) + ').',
-      ' Средний чек ', B(moneyShort(m.avg) + ' ₽'), m.avg >= M.avg ? ', выше среднего по отделу.' : ', ниже среднего по отделу (' + moneyShort(M.avg) + ' ₽).']);
+    para([m.name + ' на ', B(m.rank + ' месте'), ' в команде: ' + money(m.cash) + ', это ' + pct(PM.cash ? m.cash / PM.cash : 0, 0) + ' кэша отдела за период «' + R.label + '».']);
+    para(['Из встречи в оплату доходит ', B(pct(m.cvh)), m.cvh >= PM.cvh ? ', выше, чем у отдела (' + pct(PM.cvh) + ').' : ', ниже, чем у отдела (' + pct(PM.cvh) + ').',
+      ' Средний чек ', B(moneyShort(m.avg) + ' ₽'), m.avg >= PM.avg ? ', выше среднего по отделу.' : ', ниже среднего по отделу (' + moneyShort(PM.avg) + ' ₽).']);
     const srcTop = Object.entries(m.src).sort((a, b) => b[1] - a[1])[0];
-    if (srcTop) para(['Чаще всего платят клиенты из ', B(srcTop[0]), ': ' + srcTop[1] + ' из ' + m.paid + '.' + (m.cashS ? ' К тем же дням ' + W.P.gen + ' кэш ' + (m.vs >= 0 ? 'вырос на ' : 'меньше на ') + pct(Math.abs(m.vs), 0) + '.' : '')]);
+    if (srcTop) para(['Чаще всего платят клиенты из ', B(srcTop[0]), ': ' + srcTop[1] + ' из ' + m.paid + '.' + (m.cashS ? ' К периоду «' + R.prevName + '» кэш ' + (m.vs >= 0 ? 'вырос на ' : 'меньше на ') + pct(Math.abs(m.vs), 0) + '.' : '')]);
     const strong = [], grow = [];
-    (m.cvh >= M.cvh ? strong : grow).push('Конверсия встреч');
-    (m.avg >= M.avg ? strong : grow).push('Средний чек');
-    const avgLeads = M.leads / M.managers.length;
+    (m.cvh >= PM.cvh ? strong : grow).push('Конверсия встреч');
+    (m.avg >= PM.avg ? strong : grow).push('Средний чек');
+    const avgLeads = PM.leads / Math.max(1, ms.length);
     (m.leads >= avgLeads ? strong : grow).push('Объём лидов');
-    (m.vs >= 0 ? strong : grow).push('Темп к ' + W.P.dat);
+    if (m.cashS) (m.vs >= 0 ? strong : grow).push('Рост к прошлому периоду');
     const ch = el('div', 'chips-h'); ch.append(document.createTextNode('Сильные стороны'), el('span', null, 'по сравнению со средним по отделу')); ab.append(ch);
     const chips = el('div', 'chips');
     if (!strong.length) chips.append(el('span', 'empty', 'Пока все показатели ниже среднего по отделу.'));
@@ -1474,12 +1568,12 @@ a { color: inherit; }
 
     const WDN = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
     pillChart($('p-pills'), m.week.map((v, i) => ({ label: WDN[i], value: v, aria: WDN[i] + ': ' + (v ? money(v) : 'оплат нет') })), moneyShort);
-    $('p-week-total').textContent = 'за ' + W.C.nom;
-    $('p-pay-title').textContent = 'Оплаты в ' + W.C.prep;
+    $('p-week-total').textContent = R.label;
+    $('p-pay-title').textContent = 'Оплаты: ' + R.label;
 
     $('p-pay-count').textContent = m.pays.length + ' ' + plural(m.pays.length, 'запись', 'записи', 'записей');
     const f = $('p-feed'); f.replaceChildren();
-    if (!m.pays.length) f.append(el('p', 'empty', 'В ' + W.C.prep + ' оплат пока нет.'));
+    if (!m.pays.length) f.append(el('p', 'empty', 'За этот период оплат нет.'));
     m.pays.forEach(p => {
       const e = el('div', 'ev');
       const ic = srcTile(p.source); ic.title = p.source;
@@ -1502,7 +1596,7 @@ a { color: inherit; }
   }
   function selectMgr(name) { mgrSel = name; drawManagers(); replay($('page-managers')); }
   $('p-next').addEventListener('click', () => {
-    const ms = [...M.managers].sort((a, b) => a.rank - b.rank); const i = ms.findIndex(x => x.name === mgrSel);
+    const ms = [...mgrModel().managers].sort((a, b) => a.rank - b.rank); const i = ms.findIndex(x => x.name === mgrSel);
     selectMgr(ms[(i + 1) % ms.length].name);
   });
 
@@ -1514,19 +1608,19 @@ a { color: inherit; }
   const monthName = m => NOM[mi(m)];
 
   function drawPayments() {
-    const all = RAW.filter(r => r.month === payMonth).sort((a, b) => b.date.localeCompare(a.date) || Number(b.price) - Number(a.price));
+    drawPer(); const R = perRange();
+    const all = ALL ? perStats(R.from, R.to).all : RAW.filter(r => r.month === payMonth).sort((a, b) => b.date.localeCompare(a.date) || Number(b.price) - Number(a.price));
     const live = all.filter(r => r.kind !== 'возврат');
     const srcs = {}; live.forEach(r => { srcs[r.source] = srcs[r.source] || { n: 0, cash: 0 }; srcs[r.source].n++; srcs[r.source].cash += Number(r.net); });
     const order = Object.entries(srcs).sort((a, b) => b[1].cash - a[1].cash);
     if (paySrc !== 'all' && !srcs[paySrc]) paySrc = 'all';
     const total = live.reduce((a, r) => a + Number(r.net), 0);
-    $('pay-sub').textContent = 'Журнал оплат за ' + monthName(payMonth) + ': ' + all.length + ' ' + plural(all.length, 'запись', 'записи', 'записей') + ', ' + money(total) + ' чистыми после комиссии.';
+    $('pay-sub').textContent = 'Журнал оплат, ' + R.label + ': ' + all.length + ' ' + plural(all.length, 'запись', 'записи', 'записей') + ', ' + money(total) + ' чистыми после комиссии.';
     const seg = $('src-seg'); seg.replaceChildren();
     [['all', 'Все'], ...order.map(([k]) => [k, k])].forEach(([k, t]) => {
       const b = el('button', null, t); b.type = 'button'; b.setAttribute('aria-pressed', String(k === paySrc));
       b.addEventListener('click', () => { paySrc = k; payLimit = 12; drawPayments(); replayGrid(); }); seg.append(b);
     });
-    $('month-btn').querySelector('span').textContent = 'Показать ' + monthName(payMonth === M.cur ? M.prev : M.cur);
 
     const rows = all.filter(r => paySrc === 'all' || r.source === paySrc);
     const g = $('pay-grid'); g.replaceChildren();
@@ -1562,7 +1656,7 @@ a { color: inherit; }
     ft.append(big, el('span', null, plural(live.length, 'оплата', 'оплаты', 'оплат') + ' на ' + money(total) + (all.length > live.length ? ', возвраты не считаем' : '')));
   }
   function replayGrid() { const g = $('pay-grid'); g.querySelectorAll('[data-anim]').forEach(n => { n.style.animation = 'none'; void n.offsetWidth; n.style.animation = ''; }); replay($('page-payments')); }
-  $('month-btn').addEventListener('click', () => { payMonth = payMonth === M.cur ? M.prev : M.cur; paySrc = 'all'; payLimit = 12; animateNums = true; drawPayments(); replay($('page-payments')); });
+
   $('pay-more').addEventListener('click', () => { payLimit += 12; animateNums = false; drawPayments(); });
 
   /* ---------- Возражения ---------- */
@@ -1672,7 +1766,6 @@ a { color: inherit; }
 
   /* ---------- Воронка: свой период, путь клиента, менеджеры с кэшем, чеком и циклом сделки ---------- */
   let BOOK = null, COH = null, cohLoading = null, cohFailed = false;
-  const FN = { p: 'month', from: null, to: null };
   const median = a => { if (!a.length) return NaN; const s = [...a].sort((x, y) => x - y), m = s.length >> 1; return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; };
   const daysBetween = (createdIso, paidDate) => {
     const c = new Date(new Date(createdIso).getTime() + MSK).toISOString().slice(0, 10); // день создания по Москве
@@ -1692,57 +1785,23 @@ a { color: inherit; }
     })();
     return cohLoading;
   }
-  const fnMonths = () => (META && META.months) ? META.months : [M.cur];
-  function fnRange() {
-    const ms = fnMonths(), view = META && META.view ? META.view : M.cur, iv = Math.max(0, ms.indexOf(view));
-    if (FN.p === 'q') return ms.slice(Math.max(0, iv - 2), iv + 1);
-    if (FN.p === 'all') return ms.slice(0, iv + 1);
-    if (FN.p === 'custom') { const a = ms.indexOf(FN.from), b = ms.indexOf(FN.to); if (a >= 0 && b >= 0) return ms.slice(Math.min(a, b), Math.max(a, b) + 1); }
-    return [view];
-  }
   const monthLabel = k => cap(RU[Number(k.slice(5, 7)) - 1]);
-  /* Сумма по месяцам: лиды/встречи из сводки, менеджеры из KPI, оплаты из журнала */
-  async function fnAgg(keys) {
-    const agg = { leads: 0, booked: 0, held: 0, paid: 0, cash: 0, plan: 0, mg: {}, pays: [] };
-    for (const k of keys) {
-      const y = Number(k.slice(0, 4)), m = Number(k.slice(5, 7));
-      let D, K = [];
-      try { D = await monthData(BOOK, y, m); } catch (e) { continue; }
-      try { K = await managersOf(BOOK, y, m); } catch (e) {}
-      D.d.forEach(r => { agg.leads += r.leads; agg.booked += r.booked; agg.held += r.held; });
-      agg.plan += D.plan.plan || 0;
-      K.forEach(r => { const nm = SHORT_MGR[r.manager] || r.manager; const x = agg.mg[nm] = agg.mg[nm] || { leads: 0, booked: 0, held: 0 }; x.leads += r.leads; x.booked += r.booked; x.held += r.held; });
-      D.p.filter(p => p.kind !== 'возврат').forEach(p => { agg.paid++; agg.cash += p.net; agg.pays.push(p); });
-    }
-    return agg;
-  }
   let fnSeq = 0;
   async function drawFunnel() {
     const seq = ++fnSeq;
-    document.querySelectorAll('#fn-preset button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.p === FN.p)));
-    $('fn-dates').hidden = FN.p !== 'custom';
-    const fms = document.querySelector('.fn-ms'); if (fms) fms.hidden = FN.p !== 'month' || fnMonths().length < 2;
-    const ms = fnMonths();
-    if (!FN.from) { FN.from = ms[0]; FN.to = ms[ms.length - 1]; }
-    ['fn-from', 'fn-to'].forEach(id => { const s = $(id); if (s.options.length !== ms.length) { s.replaceChildren(...ms.map(k => { const o = el('option', null, monthLabel(k) + ' ' + k.slice(0, 4)); o.value = k; return o; })); } s.value = id === 'fn-from' ? FN.from : FN.to; });
-    const keys = fnRange(), single = keys.length === 1 && keys[0] === M.cur;
-    const live = META && META.live && single;
-    let cur, prev, prevLabel;
-    if (single || !BOOK) {
+    drawPer();
+    const R = perRange(), live = META && META.live;
+    let cur, prev, prevLabel = R.prevName;
+    if (ALL) { cur = perStats(R.from, R.to); prev = perStats(R.pf, R.pt); }
+    else {
       cur = { leads: M.leads, booked: M.booked, held: M.held, paid: M.paid, cash: M.cash, plan: M.plan, mg: Object.fromEntries(M.managers.map(m => [m.name, { leads: m.leads, booked: m.booked, held: m.held }])), pays: M.octPays.filter(p => p.kind !== 'возврат') };
       prev = { leads: M.leadsS, booked: M.bookedS, held: M.heldS, paid: M.paidS, cash: M.cashS };
-      prevLabel = W.P.nom + (live ? ', те же дни' : '');
-      $('fn-sub').textContent = live ? 'С 1 по ' + dlabel(M.asof) + ', сравнение с теми же днями ' + W.P.gen + '.' : cap(W.C.nom) + ' ' + W.C.year + ', сравнение с прошлым месяцем.';
-      if (!BOOK && keys.length > 1) $('fn-sub').textContent += ' Период больше месяца появится, когда загрузятся свежие данные.';
-    } else {
-      cur = await fnAgg(keys);
-      const i0 = ms.indexOf(keys[0]), pk = ms.slice(Math.max(0, i0 - keys.length), i0);
-      prev = pk.length === keys.length ? await fnAgg(pk) : null;
-      prevLabel = prev ? (pk.length === 1 ? monthLabel(pk[0]) : monthLabel(pk[0]) + ' – ' + monthLabel(pk[pk.length - 1]).toLowerCase()) : '';
-      $('fn-sub').textContent = (keys.length === 1 ? monthLabel(keys[0]) + ' ' + keys[0].slice(0, 4) : monthLabel(keys[0]) + ' – ' + monthLabel(keys[keys.length - 1]).toLowerCase() + ' ' + keys[keys.length - 1].slice(0, 4)) + (prev ? ', сравнение с периодом «' + prevLabel + '».' : '.');
     }
+    const single = PER.p === 'month';
+    const keys = { from: ALL ? R.from : M.cur + '-01', to: ALL ? R.to : M.asof };
+    $('fn-sub').textContent = R.label + ', сравнение с периодом «' + prevLabel + '».';
     if (seq !== fnSeq) return;
-    const periodName = $('fn-sub').textContent.split(',')[0].replace(/\.$/, '');
+    const periodName = R.label;
     // KPI-плитки: три конверсии и кэш
     const kp = $('fn-kpis'); kp.replaceChildren();
     const tiles = [
@@ -1758,13 +1817,13 @@ a { color: inherit; }
       c.append(el('span', 'label', t), b);
       if (isFinite(pv) && prev) {
         const d = isMoney ? (pv ? v / pv - 1 : NaN) : v - pv;
-        const toWhat = (single || !BOOK) ? 'к ' + W.P.dat + (live ? ', те же дни' : '') : 'к прошлому периоду';
+        const toWhat = 'к периоду «' + prevLabel + '»';
         if (isFinite(d)) c.append(el('span', 'delta num ' + (d >= 0 ? 'up' : 'down'), isMoney ? signed(d) + ' ' + toWhat : (d >= 0 ? '+' : '−') + Math.abs(d * 100).toFixed(1).replace('.', ',') + ' п.п. ' + toWhat));
       }
       c.append(el('span', 'fn-kpi-sub', sub)); kp.append(c);
     });
     drawFnPath(cur, prev, prevLabel);
-    drawFnPlan(cur, keys, single && live);
+    drawFnPlan(cur, R);
     $('fn-tbl-sub').textContent = periodName;
     drawFnTable(cur, keys);
     if (!COH && (ROLE === 'admin' || ROLE === 'boss')) loadCohort().then(() => { if (current === 'funnel' && seq === fnSeq) drawFnTable(cur, keys); });
@@ -1800,8 +1859,8 @@ a { color: inherit; }
     box.append(list);
     $('fn-path-sub').textContent = prev ? 'справа: изменение к прошлому периоду' : '';
   }
-  function drawFnPlan(cur, keys, live) {
-    $('fn-plan-sub').textContent = keys.length === 1 ? monthLabel(keys[0]) : keys.length + ' ' + plural(keys.length, 'месяц', 'месяца', 'месяцев');
+  function drawFnPlan(cur, PR) {
+    $('fn-plan-sub').textContent = PR.label + ', план за эти дни';
     const pl = $('fn-plan'); pl.replaceChildren();
     const plan = cur.plan || 0, done = plan ? Math.min(1, cur.cash / plan) : 0;
     const R = 70, C = 2 * Math.PI * R;
@@ -1817,7 +1876,7 @@ a { color: inherit; }
   }
   function drawFnTable(cur, keys) {
     const pays = cur.pays || [];
-    const coh = COH ? COH.pays.filter(x => x.kind !== 'возврат' && x.days != null && keys.includes(x.d.slice(0, 7))) : null;
+    const coh = COH ? COH.pays.filter(x => x.kind !== 'возврат' && x.days != null && x.d >= keys.from && x.d <= keys.to) : null;
     const names = [...new Set(Object.keys(cur.mg).concat(pays.map(p => p.manager)))];
     const rows = names.map(n => {
       const k = cur.mg[n] || { leads: 0, booked: 0, held: 0 }, mine = pays.filter(p => p.manager === n);
@@ -1850,7 +1909,7 @@ a { color: inherit; }
     const note = $('fn-note');
     if (!coh) note.textContent = (ROLE === 'admin' || ROLE === 'boss') ? (cohFailed ? 'Цикл сделки не загрузился: не получилось получить даты сделок из amoCRM.' : 'Цикл сделки загружается из amoCRM…') : '';
     else {
-      const miss = COH.pays.filter(x => x.kind !== 'возврат' && keys.includes(x.d.slice(0, 7)) && x.days == null).length;
+      const miss = COH.pays.filter(x => x.kind !== 'возврат' && x.d >= keys.from && x.d <= keys.to && x.days == null).length;
       note.textContent = 'Цикл сделки: сколько дней прошло от создания сделки в amoCRM (первое сообщение клиента) до оплаты, медиана. Часы не считаем: в журнале оплат есть только дата.' + (miss ? ' Без даты сделки ' + miss + ' ' + plural(miss, 'оплата', 'оплаты', 'оплат') + ': нет ссылки на AMO или amoCRM ещё не ответил.' : '');
     }
   }
@@ -1952,8 +2011,6 @@ a { color: inherit; }
     c3.append(el('p', 'fn-note', 'Пока линия растёт, по аудитории этого месяца ещё идут продажи. Свежие месяцы короче: они ещё не прожили 120 дней.'));
     body.append(c3);
   }
-  document.querySelectorAll('#fn-preset button').forEach(b => b.addEventListener('click', () => { FN.p = b.dataset.p; drawFunnel(); }));
-  ['fn-from', 'fn-to'].forEach(id => $(id).addEventListener('change', e => { FN[id === 'fn-from' ? 'from' : 'to'] = e.target.value; drawFunnel(); }));
 
   function drawCountdown() {
     const c = $('countdown'); c.replaceChildren();
@@ -2134,7 +2191,7 @@ a { color: inherit; }
       const bar = el('span', 'ci-b'); const i = el('i'); i.style.background = srcColor(k); i.style.width = '0%'; bar.append(i); mid.append(t, bar); mid.style.display = 'block'; mid.style.minWidth = '0';
       requestAnimationFrame(() => requestAnimationFrame(() => { i.style.width = (v.cash / max * 100) + '%'; }));
       b.title = v.n + ' ' + plural(v.n, 'оплата', 'оплаты', 'оплат');
-      b.append(fold, mid); b.addEventListener('click', () => { paySrc = k; payMonth = M.cur; payLimit = 12; go2('payments'); }); list.append(b);
+      b.append(fold, mid); b.addEventListener('click', () => { paySrc = k; PER.p = 'month'; payLimit = 12; go2('payments'); }); list.append(b);
     });
     if (!order.length) list.append(el('p', 'label', 'Оплат пока нет.'));
     c.append(list);
@@ -2744,7 +2801,7 @@ a { color: inherit; }
       const j = await r.json();
       if (j.me) { renderMe(j.me); throw new MeMode(); }
       if (j.role === 'marketing') { marketingMode(); throw new MeMode(); }
-      ROLE = j.role; return { sheets: j.sheets, synced_at: j.synced_at, hang: j.hang ?? null, pipe: j.pipe ?? null };
+      ROLE = j.role; return { sheets: j.sheets, synced_at: j.synced_at, hang: j.hang ?? null, pipe: j.pipe ?? null, mgrDays: j.mgr_days || null };
     }
     const { data: { session } } = await SB.auth.getSession();
     if (!session) { showLogin(); throw new Error('нужно войти'); }
@@ -2754,7 +2811,7 @@ a { color: inherit; }
     const j = await r.json();
     if (j.me) { renderMe(j.me); throw new MeMode(); }
     if (j.role === 'marketing') { marketingMode(); throw new MeMode(); }
-    ROLE = j.role; return { sheets: j.sheets, synced_at: j.synced_at, hang: j.hang ?? null, pipe: j.pipe ?? null };
+    ROLE = j.role; return { sheets: j.sheets, synced_at: j.synced_at, hang: j.hang ?? null, pipe: j.pipe ?? null, mgrDays: j.mgr_days || null };
   }
   async function loadBookXlsx() {
     const r = await fetch('https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/export?format=xlsx', { cache: 'no-store' });
@@ -2907,15 +2964,16 @@ a { color: inherit; }
     let cd = C.d.filter(r => r.date <= last);
     if (!cd.length) cd = [{ month: keyOf(...cur), date: last, leads: 0, booked: 0, held: 0 }];
     const [objections, gid] = await Promise.all([objectionsOf(book, [keyOf(...cur), keyOf(...pk)]), payGid('Оплаты ' + RU[cur[1] - 1])]);
+    const all = await buildAll(book, months);
     const stamp = mskNow.toISOString().slice(0, 19) + '+03:00';
-    return { payments: P.p.concat(C.p), days: P.d.concat(cd), managers: cm, plans: [P.plan, C.plan], meta: { updated_at: stamp, asof: last, pay_gid: gid, months, view: key, live: key === keyOf(y0, m0) }, objections, hang: book.hang ?? null, pipe: book.pipe ?? null };
+    return { payments: P.p.concat(C.p), days: P.d.concat(cd), managers: cm, plans: [P.plan, C.plan], meta: { updated_at: stamp, asof: last, pay_gid: gid, months, view: key, live: key === keyOf(y0, m0) }, objections, hang: book.hang ?? null, pipe: book.pipe ?? null, all };
   }
   // переключатель месяца: в баннере «Обзора», в «Менеджерах» и «Воронке» - месяц один на весь дашборд
   function drawMonthSwitch() {
     if (!META || !META.months) return;
     const i = META.months.indexOf(META.view);
     document.querySelectorAll('.ms-box').forEach(box => {
-      box.hidden = META.months.length < 2 || (box.classList.contains('fn-ms') && FN.p !== 'month');
+      box.hidden = META.months.length < 2;
       box.querySelector('.ms-name').textContent = cap(RU[Number(META.view.slice(5, 7)) - 1]) + ' ' + META.view.slice(0, 4);
       box.querySelector('[data-step="-1"]').disabled = i <= 0 || loading;
       box.querySelector('[data-step="1"]').disabled = i < 0 || i >= META.months.length - 1 || loading;
@@ -2944,7 +3002,7 @@ a { color: inherit; }
     b.setAttribute('aria-label', 'Обновить данные из таблицы. Обновлено ' + ago);
   }
   function applyData(data) {
-    RAW = data.payments; META = data.meta; OBJ = data.objections || []; HANG = data.hang ?? null; PIPE = data.pipe ?? null;
+    RAW = data.payments; META = data.meta; ALL = data.all || null; OBJ = data.objections || []; HANG = data.hang ?? null; PIPE = data.pipe ?? null;
     document.querySelectorAll('a[href*="docs.google.com/spreadsheets"]').forEach(a => { a.href = TABLE_URL + (/^\d+$/.test(META.pay_gid || '') ? '#gid=' + META.pay_gid : ''); });
     // таблицу с зарплатами открывает только Слава
     if (ROLE && ROLE !== 'admin') document.querySelectorAll('a[href*="docs.google.com/spreadsheets"]').forEach(a => { a.style.display = 'none'; });
