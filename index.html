@@ -894,27 +894,56 @@ a { color: inherit; }
 .me-rl span { color: #A39E99; }
 #logout-btn[hidden] { display: none; }
 /* Возражения по причинам */
-.obj-sum { display: flex; flex-direction: column; gap: 10px; margin: 4px 0 18px; }
-.obj-lead { margin: 0; font-size: 15px; color: var(--muted); }
+/* Возражения (16.11): итог сверху, причины рейтингом, формулировки раскрываются */
+.obj-sum { display: flex; flex-direction: column; gap: 14px; margin: 4px 0 18px; }
+.obj-kpis { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.ot-k { display: flex; flex-direction: column; gap: 2px; padding: 16px 20px; border-radius: 18px; background: var(--card); box-shadow: var(--shadow); }
+.ot-k b { font-size: 30px; font-weight: 600; letter-spacing: -0.035em; line-height: 1.1; }
+.ot-k span { font-size: 13px; color: var(--muted); }
+.ot-k.muted b { color: var(--muted); }
+.ot-k.main { background: var(--ink); color: var(--card); }
+.ot-k.main span { color: color-mix(in srgb, var(--card) 70%, transparent); }
+.obj-lead { margin: 0; font-size: 14.5px; color: var(--ink-2); line-height: 1.45; }
 .obj-lead b { color: var(--ink); font-weight: 600; }
-.obj-bar { display: flex; gap: 3px; height: 12px; border-radius: 6px; overflow: hidden; }
-.obj-bar i { display: block; min-width: 4px; }
-.obj-reasons { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr)); gap: 16px; align-items: start; }
-.obj-reason { padding: 18px 20px; }
-.or-h { display: flex; align-items: center; gap: 10px; }
+.obj-reasons { display: block; }
+.obj-rank { padding: 22px 22px 14px; }
+.obj-rank .card-h { margin-bottom: 6px; }
+.obj-rank .ork-sep { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line); }
+.ork { border-radius: 14px; transition: background .2s; }
+.ork.open { background: var(--track); margin: 4px 0; }
+.ork-h { width: 100%; display: grid; grid-template-columns: 10px minmax(150px, 260px) minmax(0, 1fr) 92px 22px; gap: 14px; align-items: center; border: 0; background: transparent; padding: 11px 12px; border-radius: 14px; cursor: pointer; text-align: left; color: var(--ink); }
+.ork:not(.open) .ork-h:hover { background: var(--track); }
 .or-dot { width: 10px; height: 10px; border-radius: 50%; flex: none; }
-.or-h h2 { margin: 0; font-size: 16px; font-weight: 600; letter-spacing: -0.01em; flex: 1; min-width: 0; }
-.or-n { font-size: 13px; color: var(--muted); white-space: nowrap; }
-.or-n b { font-size: 20px; color: var(--ink); font-weight: 600; margin-right: 2px; }
-.or-bar { height: 4px; border-radius: 2px; background: var(--track); margin: 10px 0 8px; overflow: hidden; }
-.or-bar i { display: block; height: 100%; border-radius: 2px; }
+.ork-name { font-size: 14.5px; font-weight: 600; min-width: 0; }
+.ork-bar { height: 8px; border-radius: 4px; background: color-mix(in srgb, var(--line-2) 55%, transparent); overflow: hidden; }
+.ork-bar i { display: block; height: 100%; border-radius: inherit; }
+.ork-n { display: flex; align-items: baseline; justify-content: flex-end; gap: 8px; white-space: nowrap; }
+.ork-n b { font-size: 17px; font-weight: 600; }
+.ork-n span { font-size: 12.5px; color: var(--muted); min-width: 30px; text-align: right; }
+.ork-chev { color: var(--muted); display: grid; place-items: center; transition: transform .25s var(--ease); }
+.ork-chev .ico { width: 18px; height: 18px; }
+.ork.open .ork-chev { transform: rotate(180deg); }
+.ork.lost .ork-name, .ork.lost .ork-n b { color: var(--ink-2); }
+.ork-body { padding: 0 16px 12px 36px; }
+.ork-body .or-list { columns: 2 340px; column-gap: 28px; display: block; }
 .or-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
-.or-list li { display: flex; gap: 10px; align-items: baseline; justify-content: space-between; padding: 7px 0; border-top: 1px solid var(--line); font-size: 13.5px; line-height: 1.35; }
-.or-list li:first-child { border-top: 0; }
+.or-list li { display: flex; gap: 10px; align-items: baseline; justify-content: space-between; padding: 7px 0; border-top: 1px solid var(--line-2); font-size: 13.5px; line-height: 1.35; break-inside: avoid; }
 .or-t { min-width: 0; overflow-wrap: anywhere; }
 .or-c { flex: none; font-size: 12px; color: var(--muted); }
 .or-c.many { font-weight: 600; color: var(--ink); }
-.or-more { margin-top: 6px; border: 0; background: none; padding: 4px 0; font: inherit; font-size: 13px; font-weight: 500; color: var(--accent); cursor: pointer; }
+.or-more { margin-top: 6px; border: 0; background: none; padding: 4px 0; font: inherit; font-size: 13px; font-weight: 600; color: var(--accent-ink); cursor: pointer; }
+@media (max-width: 760px) {
+  .obj-kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .ot-k { padding: 12px; border-radius: 14px; }
+  .ot-k b { font-size: 22px; }
+  .ot-k span { font-size: 11.5px; line-height: 1.3; }
+  .obj-rank { padding: 16px 10px 8px; }
+  .obj-rank .card-h { padding: 0 6px; flex-wrap: wrap; }
+  .obj-rank .card-h .small { flex-basis: 100%; }
+  .ork-h { grid-template-columns: 10px minmax(0, 1fr) auto 18px; row-gap: 8px; column-gap: 10px; padding: 10px; }
+  .ork-bar { grid-column: 2 / -1; grid-row: 2; }
+  .ork-body { padding: 0 12px 10px 30px; }
+}
 /* Воронка */
 .fn-ms { height: 38px; background: var(--card); box-shadow: var(--shadow); color: var(--ink); }
 .fn-ms b { color: var(--ink); }
@@ -933,7 +962,11 @@ a { color: inherit; }
 @media (max-width: 760px) { .ad-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } .ad-kpis b { font-size: 21px; } }
 .fn-kpi-sub { font-size: 12.5px; color: var(--muted); }
 .fn-top { grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr) !important; margin-bottom: 22px; }
-.fp-lead { margin: 0 0 16px; font-size: 14.5px; line-height: 1.45; color: var(--ink-2); }
+.fp-head { display: flex; flex-direction: column; gap: 6px; margin: 0 0 18px; }
+.fp-big { display: flex; align-items: baseline; gap: 10px; }
+.fp-big b { font-size: 40px; font-weight: 600; letter-spacing: -0.04em; line-height: 1; }
+.fp-big span { font-size: 15px; color: var(--ink-2); }
+.fp-lead { margin: 0; font-size: 14px; line-height: 1.45; color: var(--muted); }
 .fp-lead b { color: var(--ink); font-weight: 600; } .fp-lead b.bad { color: var(--bad); }
 .fp { display: flex; flex-direction: column; }
 .fp-row { display: grid; grid-template-columns: minmax(130px, 190px) 70px minmax(0, 1fr); align-items: center; gap: 12px; }
@@ -941,13 +974,16 @@ a { color: inherit; }
 .fp-row > b { font-size: 20px; font-weight: 600; text-align: right; }
 .fp-bar { height: 26px; border-radius: 8px; background: var(--track); overflow: hidden; }
 .fp-bar i { display: block; height: 100%; border-radius: 8px; transition: width .9s var(--ease); }
-.fp-loss { display: flex; align-items: center; gap: 10px; margin: 6px 0 6px 18px; padding: 4px 0 4px 16px; border-left: 2px dashed var(--line-2); font-size: 13px; color: var(--muted); }
+.fp-loss { display: flex; align-items: center; gap: 10px; margin: 6px 0; padding: 6px 12px 6px 22px; border-radius: 12px; font-size: 13px; color: var(--muted); position: relative; }
+.fp-loss::before { content: ""; position: absolute; left: 10px; top: 4px; bottom: 4px; width: 2px; border-radius: 1px; background: var(--line-2); }
 .fp-loss b { color: var(--ink); font-weight: 600; }
 .fp-conv { display: inline-grid; place-items: center; min-width: 46px; height: 26px; padding: 0 8px; border-radius: 13px; background: var(--track); color: var(--ink); font-weight: 600; font-size: 13px; }
-.fp-loss.worst { border-left-color: var(--bad); }
+.fp-loss.worst { background: var(--bad-bg); color: var(--ink-2); }
+.fp-loss.worst::before { background: var(--bad); }
 .fp-loss.worst .fp-conv { background: var(--bad); color: #fff; }
 .fp-loss.worst b { color: var(--bad); }
-.fp-d { margin-left: auto; font-size: 12px; font-weight: 600; }
+.fp-d { margin-left: auto; font-size: 12.5px; font-weight: 600; white-space: nowrap; }
+.fp-d.up { color: var(--good); } .fp-d.down { color: var(--bad); }
 .fn-tbl-wrap .tbl td.num { white-space: nowrap; }
 .tbl tr.tot td { font-weight: 600; border-top: 1px solid var(--line-2); }
 .fn-cards { display: none; flex-direction: column; gap: 10px; }
@@ -960,6 +996,23 @@ a { color: inherit; }
 .fc-g { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 14px; }
 .fc-g div { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; border-bottom: 1px solid var(--line); padding-bottom: 6px; }
 .fc-g span { color: var(--muted); }
+/* Воронка по менеджерам (16.11): группы колонок, приглушённые количества, плашки лучший/худший, полоска кэша */
+#ad-card { margin-bottom: 22px; }
+.fn-tbl thead tr.grp th { padding-bottom: 4px; border-bottom: 0; font-size: 11px; font-weight: 600; text-transform: none; color: var(--muted); text-align: center; }
+.fn-tbl thead tr.grp th[colspan] { position: relative; }
+.fn-tbl thead tr.grp th[colspan]::after { content: ""; position: absolute; left: 10px; right: 10px; bottom: 0; height: 1px; background: var(--line-2); }
+.fn-tbl td.dim { color: var(--muted); }
+.fn-tbl td.strong { font-weight: 700; font-size: 15px; }
+.fn-tbl .tp { display: inline-block; min-width: 54px; padding: 3px 8px; border-radius: 8px; font-weight: 600; }
+.fn-tbl .tp.hi { background: var(--good-bg); color: var(--good); }
+.fn-tbl .tp.low { background: var(--bad-bg); color: var(--bad); }
+.fn-tbl td.cash { position: relative; }
+.fn-tbl td.cash b { font-weight: 700; font-size: 15px; }
+.fn-tbl .cbar { position: absolute; right: 10px; bottom: 5px; height: 3px; border-radius: 2px; max-width: calc(100% - 20px); opacity: .8; }
+.fn-tbl tr.tot td { border-top: 2px solid var(--line-2); font-weight: 700; color: var(--ink); background: color-mix(in srgb, var(--track) 60%, transparent); }
+.fn-tbl tr.tot td:first-child { border-radius: 0 0 0 12px; } .fn-tbl tr.tot td:last-child { border-radius: 0 0 12px 0; }
+.fn-tbl td:nth-child(5), .fn-tbl th:nth-child(5), .fn-tbl td:nth-child(7), .fn-tbl th:nth-child(7) { padding-right: 22px; }
+@media (max-width: 520px) { .fp-big b { font-size: 32px; } .fp-loss { flex-wrap: wrap; row-gap: 4px; } .fp-d { margin-left: 0; flex-basis: 100%; padding-left: 56px; } }
 .fn-note { margin: 12px 0 0; font-size: 12.5px; color: var(--muted); line-height: 1.45; }
 @media (max-width: 1100px) { .fn-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } .fn-top { grid-template-columns: minmax(0, 1fr) !important; } }
 @media (max-width: 760px) { .fn-tbl-wrap { display: none; } .fn-cards { display: flex; } }
@@ -1213,7 +1266,7 @@ a { color: inherit; }
       </div>
       <div class="card" data-anim style="--i:5" id="ad-card" hidden><div class="card-h"><h2>Стоимость лида</h2><span class="small" id="ad-sub"></span></div><div class="ad-kpis" id="ad-kpis"></div><p class="fn-note" id="ad-note"></p></div>
       <div class="card" data-anim style="--i:5"><div class="card-h"><h2>Воронка по менеджерам</h2><span class="small" id="fn-tbl-sub"></span></div>
-        <div class="tbl-wrap fn-tbl-wrap"><table class="tbl" id="fn-tbl"><thead><tr><th>Менеджер</th><th>Лиды</th><th>Назначено</th><th>Проведено</th><th>Оплаты</th><th>Лид → встреча</th><th>Встреча → оплата</th><th>Чистый кэш</th><th>Средний чек</th><th title="От создания сделки в amoCRM (первое сообщение) до оплаты, медиана">Цикл сделки</th></tr></thead><tbody></tbody></table></div>
+        <div class="tbl-wrap fn-tbl-wrap"><table class="tbl fn-tbl" id="fn-tbl"><thead><tr class="grp"><th></th><th colspan="4">Путь клиента, человек</th><th colspan="2">Конверсия</th><th colspan="2">Деньги</th><th>Скорость</th></tr><tr><th>Менеджер</th><th>Лиды</th><th>Записались</th><th>Пришли</th><th>Оплатили</th><th>Лид → пришёл</th><th>Пришёл → оплата</th><th>Чистый кэш</th><th>Средний чек</th><th title="От создания сделки в amoCRM (первое сообщение) до оплаты, медиана">Цикл сделки</th></tr></thead><tbody></tbody></table></div>
         <div class="fn-cards" id="fn-cards"></div>
         <p class="fn-note" id="fn-note"></p>
       </div>
@@ -1844,7 +1897,7 @@ a { color: inherit; }
     ['Сравнивает / другие курсы', /других школ|другой школ|другом формате|конкурент|самостоят|бесплатн|ютуб|youtube|сам[аи]? изуч|другие курсы/i],
   ];
   const OBJ_COLORS = { 'Пропал / не отвечает': '#8E8A99', 'Младше 18': '#C98A2E', 'Дорого / нет денег': '#D9534F', 'Возраст / нет опыта': '#B8662E', 'Отказ от встречи': '#3F86D9', 'Не целевой / не интересно': '#7C66DC', 'Подумать / посоветоваться': '#0E9AA8', 'Нет времени / позже': '#3E9C6C', 'Сомнения в результате': '#D9609F', 'Сравнивает / другие курсы': '#4D7C0F', 'Другое': '#C9C2BB' };
-  let objOpen = {};
+  let objOpen = {}, objAll = {};
   const reasonOf = t => (OBJ_THEMES.find(([, re]) => re.test(t)) || ['Другое'])[0];
   const objKey = t => t.toLowerCase().replace(/ё/g, 'е').replace(/[\s.,!?;:)(«»"-]+$/g, '').replace(/\s+/g, ' ').trim();
   function objRows() { return OBJ.filter(o => o.month === objMonth && (!objQ || o.text.toLowerCase().includes(objQ))); }
@@ -1859,18 +1912,27 @@ a { color: inherit; }
     return Object.values(g).map(x => ({ ...x, list: Object.values(x.texts).sort((a, b) => b.n - a.n || b.last.localeCompare(a.last)) }))
       .sort((a, b) => b.n - a.n).map(x => ({ ...x, color: OBJ_COLORS[x.name] }));
   }
+  const OBJ_LOST = 'Пропал / не отвечает';
   function drawThemes(groups, total) {
     const box = $('obj-themes'); box.replaceChildren(); box.className = 'obj-sum';
     if (!total) return;
-    const bar = el('div', 'obj-bar'); bar.setAttribute('role', 'img');
-    bar.setAttribute('aria-label', groups.map(x => x.name + ' ' + x.n).join(', '));
-    groups.forEach(x => { const i = el('i'); i.style.flexGrow = String(x.n); i.style.background = x.color; i.title = x.name + ': ' + x.n; bar.append(i); });
-    const lead = el('p', 'obj-lead'); const top = groups[0];
-    lead.append(el('b', 'num', nf.format(total)), document.createTextNode(' ' + plural(total, 'отказ', 'отказа', 'отказов') + ', ' + groups.length + ' ' + plural(groups.length, 'причина', 'причины', 'причин') + '. Чаще всего: '), el('b', null, top.name.toLowerCase()), document.createTextNode(' (' + pct(top.n / total, 0) + ').'));
-    box.append(lead, bar);
+    const lost = groups.find(x => x.name === OBJ_LOST), real = groups.filter(x => x !== lost);
+    const realN = real.reduce((a, x) => a + x.n, 0), lostN = lost ? lost.n : 0;
+    const k = (cls, v, label) => { const d = el('div', 'ot-k ' + cls); const b = el('b', 'num'); countUp(b, v, x => nf.format(Math.round(x))); d.append(b, el('span', null, label)); return d; };
+    const kp = el('div', 'obj-kpis');
+    kp.append(k('', total, plural(total, 'отказ', 'отказа', 'отказов') + ' за ' + monthName(objMonth).toLowerCase()),
+      k('muted', lostN, 'пропали, не вышли на связь · ' + (total ? pct(lostN / total, 0) : '0%')),
+      k('main', realN, 'назвали причину · ' + real.length + ' ' + plural(real.length, 'группа', 'группы', 'групп')));
+    box.append(kp);
+    const named = real.find(x => x.name !== 'Другое');
+    if (named && realN) {
+      const lead = el('p', 'obj-lead');
+      lead.append(document.createTextNode('Главная понятная причина: '), el('b', null, named.name.toLowerCase()), document.createTextNode(' — ' + nf.format(named.n) + ' из ' + nf.format(realN) + ' (' + pct(named.n / realN, 0) + '). Нажми на группу, чтобы увидеть, что именно говорили клиенты.'));
+      box.append(lead);
+    }
   }
   function drawObjections() {
-    $('obj-sub').textContent = 'Почему клиенты отказались в ' + PREP[mi(objMonth)] + '. Одинаковые ответы склеены, рядом сколько раз.';
+    $('obj-sub').textContent = 'Почему клиенты отказались в ' + PREP[mi(objMonth)] + '. Ответы разложены по группам, одинаковые склеены.';
     $('obj-month').querySelector('span').textContent = 'Показать ' + monthName(objMonth === M.cur ? M.prev : M.cur);
     const rows = objRows(), groups = objGroups(rows);
     drawThemes(groups, rows.length);
@@ -1883,29 +1945,51 @@ a { color: inherit; }
       else e.append(ic, el('h2', null, 'Возражений за ' + monthName(objMonth) + ' пока нет'), el('p', null, 'Менеджеры записывают их в amoCRM через бота, сюда они попадают в течение часа.'));
       list.append(e); return;
     }
-    const max = groups[0].n;
-    groups.forEach((x, gi) => {
-      const card = el('section', 'card obj-reason'); card.dataset.anim = ''; card.style.setProperty('--i', String(1 + Math.min(gi, 8) * .6));
-      const h = el('div', 'or-h'); const dot = el('i', 'or-dot'); dot.style.background = x.color;
-      const nm = el('h2', null, x.name); const cnt = el('span', 'or-n num'); cnt.append(el('b', null, nf.format(x.n)), document.createTextNode(' · ' + (x.n / rows.length < .01 ? '<1%' : pct(x.n / rows.length, 0))));
-      h.append(dot, nm, cnt);
-      const tr = el('div', 'or-bar'); const f = el('i'); f.style.width = (x.n / max * 100) + '%'; f.style.background = x.color; tr.append(f);
-      const ul = el('ul', 'or-list'); const LIM = 4, open = !!objOpen[x.name] || objQ;
-      x.list.forEach((t, i) => {
-        if (i >= LIM && !open) return;
-        const li = el('li'); const p = el('span', 'or-t'); markText(p, t.text, objQ);
-        li.append(p, el('span', 'or-c num' + (t.n > 1 ? ' many' : ''), t.n > 1 ? '×' + t.n : dlabel(t.last)));
-        ul.append(li);
-      });
-      card.append(h, tr, ul);
-      if (x.list.length > LIM && !objQ) {
-        const more = el('button', 'or-more'); more.type = 'button';
-        more.textContent = open ? 'Свернуть' : 'Ещё ' + (x.list.length - LIM) + ' ' + plural(x.list.length - LIM, 'формулировка', 'формулировки', 'формулировок');
-        more.addEventListener('click', () => { objOpen[x.name] = !open; drawObjections(); });
-        card.append(more);
+    const lost = groups.find(x => x.name === OBJ_LOST), other = groups.find(x => x.name === 'Другое');
+    const real = groups.filter(x => x !== lost && x !== other).concat(other ? [other] : []); // «Другое» всегда в конце
+    const realN = real.reduce((a, x) => a + x.n, 0) || 1, max = Math.max(1, ...real.map(x => x.n));
+    const card = el('section', 'card obj-rank'); card.dataset.anim = ''; card.style.setProperty('--i', '2');
+    const row = (x, i, base, isLost) => {
+      const open = objOpen[x.name] != null ? objOpen[x.name] : !!objQ || (!isLost && i === 0);
+      const wrap = el('div', 'ork' + (open ? ' open' : '') + (isLost ? ' lost' : ''));
+      const b = el('button', 'ork-h'); b.type = 'button'; b.setAttribute('aria-expanded', String(open));
+      const dot = el('i', 'or-dot'); dot.style.background = x.color || '#8E8A99';
+      const bar = el('span', 'ork-bar'); const f = el('i'); f.style.width = Math.max(2, x.n / (isLost ? x.n : max) * 100) + '%'; f.style.background = x.color || '#8E8A99'; bar.append(f);
+      const n = el('span', 'ork-n num'); n.append(el('b', null, nf.format(x.n)), el('span', null, x.n / base < .01 ? '<1%' : pct(x.n / base, 0)));
+      const chev = el('span', 'ork-chev'); chev.innerHTML = '<svg class="ico" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>';
+      b.append(dot, el('span', 'ork-name', x.name), bar, n, chev);
+      b.addEventListener('click', () => { objOpen[x.name] = !open; drawObjections(); });
+      wrap.append(b);
+      if (open) {
+        const LIM = 8, all = !!objAll[x.name] || !!objQ;
+        const ul = el('ul', 'or-list');
+        x.list.forEach((t, j) => {
+          if (j >= LIM && !all) return;
+          const li = el('li'); const p = el('span', 'or-t'); markText(p, t.text, objQ);
+          li.append(p, el('span', 'or-c num' + (t.n > 1 ? ' many' : ''), t.n > 1 ? '×' + t.n : dlabel(t.last)));
+          ul.append(li);
+        });
+        const body = el('div', 'ork-body'); body.append(ul);
+        if (x.list.length > LIM && !objQ) {
+          const more = el('button', 'or-more'); more.type = 'button';
+          more.textContent = all ? 'Свернуть' : 'Показать все ' + x.list.length + ' ' + plural(x.list.length, 'формулировку', 'формулировки', 'формулировок');
+          more.addEventListener('click', () => { objAll[x.name] = !all; drawObjections(); });
+          body.append(more);
+        }
+        wrap.append(body);
       }
-      list.append(card);
-    });
+      return wrap;
+    };
+    if (real.length) {
+      const h = el('div', 'card-h'); h.append(el('h2', null, 'Причины отказа'), el('span', 'small', 'доля среди тех, кто назвал причину'));
+      card.append(h);
+      real.forEach((x, i) => card.append(row(x, i, realN, false)));
+    }
+    if (lost) {
+      const h = el('div', 'card-h ork-sep'); h.append(el('h2', null, 'Без ответа'), el('span', 'small', 'не возражение, а потеря контакта'));
+      card.append(h, row(lost, 0, rows.length, true));
+    }
+    list.append(card);
   }
   function toast(msg) { const t = $('obj-toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('on'), 2200); }
   function copyText(text) {
@@ -1922,7 +2006,7 @@ a { color: inherit; }
     const text = 'Возражения клиентов, ' + monthName(objMonth) + (objQ ? ' (поиск: ' + $('obj-q').value.trim() + ')' : '') + '\n\n' + objGroups(rows).map(g => g.name + ' - ' + g.n + '\n' + g.list.map(t => '  ' + t.text.replace(/\n+/g, ' ') + (t.n > 1 ? ' (' + t.n + ')' : '')).join('\n')).join('\n\n');
     Promise.resolve().then(() => copyText(text)).then(() => toast('Скопировано, вставляй в контент-план'), () => toast('Не получилось скопировать: выдели текст вручную'));
   });
-  $('obj-month').addEventListener('click', () => { objMonth = objMonth === M.cur ? M.prev : M.cur; objOpen = {}; drawObjections(); replay($('page-objections')); });
+  $('obj-month').addEventListener('click', () => { objMonth = objMonth === M.cur ? M.prev : M.cur; objOpen = {}; objAll = {}; drawObjections(); replay($('page-objections')); });
   let objT; $('obj-q').addEventListener('input', e => { clearTimeout(objT); objT = setTimeout(() => { objQ = e.target.value.trim().toLowerCase(); drawObjections(); }, 150); });
 
   /* ---------- Воронка: свой период, путь клиента, менеджеры с кэшем, чеком и циклом сделки ---------- */
@@ -2027,18 +2111,23 @@ a { color: inherit; }
     const steps = st.slice(1).map((x, i) => ({ from: st[i], to: x, lost: st[i][1] - x[1], c: st[i][1] ? x[1] / st[i][1] : NaN, pc: st[i][2] ? x[2] / st[i][2] : NaN }));
     const worst = steps.reduce((w, x, i) => (x.from[1] ? x.lost / x.from[1] : 0) > (steps[w].from[1] ? steps[w].lost / steps[w].from[1] : 0) ? i : w, 0);
     const per100 = cur.leads ? Math.round(cur.paid / cur.leads * 100) : 0;
-    const head = el('p', 'fp-lead');
-    head.append(document.createTextNode('Из 100 лидов до оплаты доходят '), el('b', 'num', String(per100 || (cur.paid ? '<1' : 0))), document.createTextNode('. Больше всего людей теряем на шаге '),
-      el('b', 'bad', '«' + steps[worst].from[0].toLowerCase() + ' → ' + steps[worst].to[0].toLowerCase() + '»'), document.createTextNode(': не дошли ' + nf.format(Math.max(0, steps[worst].lost)) + ' из ' + nf.format(steps[worst].from[1]) + '.'));
-    box.append(head);
+    const ws = steps[worst];
+    const head = el('div', 'fp-head');
+    const big = el('div', 'fp-big'); big.append(el('b', 'num', String(per100 || (cur.paid ? '<1' : 0))), el('span', null, 'из 100 лидов доходят до оплаты'));
+    const why = el('p', 'fp-lead');
+    why.append(document.createTextNode('Больше всего теряем на шаге '), el('b', 'bad', ws.from[0].toLowerCase() + ' → ' + ws.to[0].toLowerCase()), document.createTextNode(': не дошли ' + nf.format(Math.max(0, ws.lost)) + ' из ' + nf.format(ws.from[1]) + ' (' + pct(ws.from[1] ? ws.lost / ws.from[1] : 0, 0) + ').'));
+    head.append(big, why); box.append(head);
     const list = el('div', 'fp'); const max = Math.max(1, cur.leads);
     st.forEach((x, i) => {
       if (i) {
         const s = steps[i - 1], l = el('div', 'fp-loss' + (i - 1 === worst ? ' worst' : ''));
         const conv = el('span', 'fp-conv num', pct(s.c, 0)); conv.title = 'Дошли до следующего шага';
-        const txt = el('span'); txt.append(document.createTextNode('дошли · '), el('b', 'num', '−' + nf.format(Math.max(0, s.lost))), document.createTextNode(' ' + plural(Math.max(0, s.lost), 'человек', 'человека', 'человек') + ' ушли'));
+        const txt = el('span', 'fp-txt'); txt.append(document.createTextNode('дошли, ушли '), el('b', 'num', nf.format(Math.max(0, s.lost))));
         l.append(conv, txt);
-        if (isFinite(s.pc) && prev) { const d = s.c - s.pc; l.append(el('span', 'fp-d num ' + (d >= 0 ? 'up' : 'down'), (d >= 0 ? '+' : '−') + Math.abs(d * 100).toFixed(1).replace('.', ',') + ' п.п.')); }
+        if (isFinite(s.pc) && prev) {
+          const d = s.c - s.pc, dd = el('span', 'fp-d num ' + (d >= 0 ? 'up' : 'down'), (d >= 0 ? 'лучше' : 'хуже') + ' на ' + Math.abs(d * 100).toFixed(1).replace('.', ',') + ' п.п.');
+          dd.title = 'Сравнение с периодом «' + prevLabel + '»: было ' + pct(s.pc, 1); l.append(dd);
+        }
         list.append(l);
       }
       const row = el('div', 'fp-row'); const bar = el('div', 'fp-bar'); const f = el('i'); f.style.background = x[3]; f.style.width = '0%'; bar.append(f);
@@ -2049,7 +2138,7 @@ a { color: inherit; }
       list.append(row);
     });
     box.append(list);
-    $('fn-path-sub').textContent = prev ? 'справа: изменение к прошлому периоду' : '';
+    $('fn-path-sub').textContent = prev ? 'сравнение: ' + prevLabel : '';
   }
   function drawFnPlan(cur, PR) {
     $('fn-plan-sub').textContent = PR.label + ', план за эти дни';
@@ -2082,27 +2171,32 @@ a { color: inherit; }
     const cards = $('fn-cards'); cards.replaceChildren();
     const tot = { name: 'Отдел', leads: cur.leads, booked: cur.booked, held: cur.held, paid: cur.paid, cash: cur.cash, avg: cur.paid ? cur.cash / cur.paid : NaN, cvl: cur.leads ? cur.held / cur.leads : NaN, cvh: cur.held ? cur.paid / cur.held : NaN, cyc: coh ? median(coh.map(x => x.days)) : NaN };
     const cycTxt = r => coh ? cycleText(r.cyc) : '…';
+    const maxCash = Math.max(0, ...rows.map(r => r.cash));
     rows.concat([tot]).forEach((r, i) => {
       const isTot = r === tot, tr = el('tr', isTot ? 'tot' : null), who = el('td'), w = el('div', 'who');
       if (!isTot) { const a = el('span', 'av', initials(r.name)); a.style.background = col(r.name); w.append(a); }
       w.append(document.createTextNode(r.name)); who.append(w);
-      tr.append(who, el('td', 'num', nf.format(r.leads)), el('td', 'num', nf.format(r.booked)), el('td', 'num', nf.format(r.held)), el('td', 'num', nf.format(r.paid)),
-        el('td', 'num ' + (isTot ? '' : mark(r.cvl, rows.map(x => x.cvl))), pct(r.cvl)), el('td', 'num ' + (isTot ? '' : mark(r.cvh, rows.map(x => x.cvh))), pct(r.cvh)),
-        el('td', 'num', moneyShort(r.cash)), el('td', 'num', isFinite(r.avg) ? moneyShort(r.avg) : '–'), el('td', 'num ' + (isTot || !coh ? '' : mark(-r.cyc, cyc)), cycTxt(r)));
+      const pill = (cls, text) => { const td = el('td', 'num'); const sp = el('span', 'tp ' + cls, text); td.append(sp); return td; };
+      const cashTd = el('td', 'num cash'); cashTd.append(el('b', null, moneyShort(r.cash)));
+      if (!isTot) { const bar = el('i', 'cbar'); bar.style.width = (maxCash ? r.cash / maxCash * 100 : 0) + '%'; bar.style.background = col(r.name); cashTd.append(bar); }
+      tr.append(who, el('td', 'num dim', nf.format(r.leads)), el('td', 'num dim', nf.format(r.booked)), el('td', 'num dim', nf.format(r.held)), el('td', 'num strong', nf.format(r.paid)),
+        pill(isTot ? '' : mark(r.cvl, rows.map(x => x.cvl)), pct(r.cvl)), pill(isTot ? '' : mark(r.cvh, rows.map(x => x.cvh)), pct(r.cvh)),
+        cashTd, el('td', 'num', isFinite(r.avg) ? moneyShort(r.avg) : '–'), pill(isTot || !coh ? '' : mark(-r.cyc, cyc), cycTxt(r)));
       tb.append(tr);
       // карточка для телефона
       const c = el('div', 'fc-card' + (isTot ? ' tot' : '')); const h = el('div', 'fc-h');
       if (!isTot) { const a = el('span', 'av', initials(r.name)); a.style.background = col(r.name); h.append(a); }
       h.append(el('b', null, r.name), el('span', 'num', moneyShort(r.cash) + ' ₽'));
       const g = el('div', 'fc-g');
-      [['Лиды', nf.format(r.leads)], ['Проведено', nf.format(r.held)], ['Оплаты', nf.format(r.paid)], ['Лид → встреча', pct(r.cvl)], ['Встреча → оплата', pct(r.cvh)], ['Средний чек', isFinite(r.avg) ? moneyShort(r.avg) : '–'], ['Цикл сделки', cycTxt(r)]].forEach(([k, v]) => { const d = el('div'); d.append(el('span', null, k), el('b', 'num', v)); g.append(d); });
+      [['Лиды', nf.format(r.leads)], ['Пришли', nf.format(r.held)], ['Оплатили', nf.format(r.paid)], ['Лид → пришёл', pct(r.cvl)], ['Пришёл → оплата', pct(r.cvh)], ['Средний чек', isFinite(r.avg) ? moneyShort(r.avg) : '–'], ['Цикл сделки', cycTxt(r)]].forEach(([k, v]) => { const d = el('div'); d.append(el('span', null, k), el('b', 'num', v)); g.append(d); });
       c.append(h, g); cards.append(c);
     });
     const note = $('fn-note');
-    if (!coh) note.textContent = (ROLE === 'admin' || ROLE === 'boss') ? (cohFailed ? 'Цикл сделки не загрузился: не получилось получить даты сделок из amoCRM.' : 'Цикл сделки загружается из amoCRM…') : '';
+    const legend = 'Зелёным отмечен лучший результат в отделе, красным худший. ';
+    if (!coh) note.textContent = legend + ((ROLE === 'admin' || ROLE === 'boss') ? (cohFailed ? 'Цикл сделки не загрузился: не получилось получить даты сделок из amoCRM.' : 'Цикл сделки загружается из amoCRM…') : '');
     else {
       const miss = COH.pays.filter(x => x.kind !== 'возврат' && x.d >= keys.from && x.d <= keys.to && x.days == null).length;
-      note.textContent = 'Цикл сделки: сколько дней прошло от создания сделки в amoCRM (первое сообщение клиента) до оплаты, медиана. Часы не считаем: в журнале оплат есть только дата.' + (miss ? ' Без даты сделки ' + miss + ' ' + plural(miss, 'оплата', 'оплаты', 'оплат') + ': нет ссылки на AMO или amoCRM ещё не ответил.' : '');
+      note.textContent = legend + 'Цикл сделки: сколько дней прошло от создания сделки в amoCRM (первое сообщение клиента) до оплаты, медиана. Часы не считаем: в журнале оплат есть только дата.' + (miss ? ' Без даты сделки ' + miss + ' ' + plural(miss, 'оплата', 'оплаты', 'оплат') + ': нет ссылки на AMO или amoCRM ещё не ответил.' : '');
     }
   }
   /* ---------- Когорты ---------- */
