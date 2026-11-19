@@ -947,7 +947,7 @@ a { color: inherit; }
 /* Воронка */
 .fn-ms { height: 38px; background: var(--card); box-shadow: var(--shadow); color: var(--ink); }
 .fn-ms b { color: var(--ink); }
-.fn-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin-bottom: 22px; }
+.fn-kpis { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 16px; margin-bottom: 22px; }
 .fn-kpi { display: flex; flex-direction: column; gap: 4px; padding: 18px 20px; }
 .fn-kpi > b { font-size: 30px; font-weight: 600; letter-spacing: -0.03em; line-height: 1.1; }
 .fn-kpi > b small { font-size: 16px; color: var(--muted); font-weight: 500; }
@@ -1014,7 +1014,7 @@ a { color: inherit; }
 .fn-tbl td:nth-child(5), .fn-tbl th:nth-child(5), .fn-tbl td:nth-child(7), .fn-tbl th:nth-child(7) { padding-right: 22px; }
 @media (max-width: 520px) { .fp-big b { font-size: 32px; } .fp-loss { flex-wrap: wrap; row-gap: 4px; } .fp-d { margin-left: 0; flex-basis: 100%; padding-left: 56px; } }
 .fn-note { margin: 12px 0 0; font-size: 12.5px; color: var(--muted); line-height: 1.45; }
-@media (max-width: 1100px) { .fn-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } .fn-top { grid-template-columns: minmax(0, 1fr) !important; } }
+@media (max-width: 1100px) { .fn-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } .fn-kpi.cnt { grid-column: 1 / -1; } .fn-top { grid-template-columns: minmax(0, 1fr) !important; } }
 @media (max-width: 760px) { .fn-tbl-wrap { display: none; } .fn-cards { display: flex; } }
 @media (max-width: 520px) { .fn-kpis { gap: 10px; } .fn-kpi { padding: 14px; } .fn-kpi > b { font-size: 24px; } .fp-row { grid-template-columns: minmax(0, 1fr) 56px; } .fp-bar { grid-column: 1 / -1; height: 18px; } .fp-loss { margin-left: 8px; flex-wrap: wrap; } .fc-g { gap: 6px 12px; } .fc-g div { flex-direction: column; gap: 1px; } }
 @media (max-width: 640px) { .side { max-width: calc(100vw - 20px); overflow-x: auto; scrollbar-width: none; } .side::-webkit-scrollbar { display: none; } .side .theme-btn { display: none; } }
@@ -2093,18 +2093,20 @@ a { color: inherit; }
     // KPI-плитки: три конверсии и кэш
     const kp = $('fn-kpis'); kp.replaceChildren();
     const tiles = [
+      ['Заявки', cur.leads, prev ? prev.leads : NaN, PER.p === 'today' ? 'пришло за сегодня' : PER.p === 'yday' ? 'пришло за вчера' : 'пришло за период', false, false, true],
       ['Встреча → оплата', cur.held ? cur.paid / cur.held : NaN, prev && prev.held ? prev.paid / prev.held : NaN, nf.format(cur.paid) + ' ' + plural(cur.paid, 'оплата', 'оплаты', 'оплат') + ' из ' + nf.format(cur.held) + ' ' + plural(cur.held, 'встречи', 'встреч', 'встреч'), true],
       ['Лид → встреча', cur.leads ? cur.held / cur.leads : NaN, prev && prev.leads ? prev.held / prev.leads : NaN, nf.format(cur.held) + ' пришли из ' + nf.format(cur.leads) + ' ' + plural(cur.leads, 'лида', 'лидов', 'лидов')],
       ['Лид → оплата', cur.leads ? cur.paid / cur.leads : NaN, prev && prev.leads ? prev.paid / prev.leads : NaN, 'купил ' + (cur.leads && cur.paid ? '1 из ' + Math.round(cur.leads / cur.paid) : '–') + ' лидов'],
       ['Чистый кэш', cur.cash, prev ? prev.cash : NaN, nf.format(cur.paid) + ' ' + plural(cur.paid, 'оплата', 'оплаты', 'оплат') + ', средний чек ' + (cur.paid ? moneyShort(cur.cash / cur.paid) + ' ₽' : '–'), false, true]
     ];
-    tiles.forEach(([t, v, pv, sub, main, isMoney]) => {
-      const c = el('div', 'card fn-kpi' + (main ? ' main' : ''));
-      const b = el('b', 'num'); countUp(b, v, isMoney ? (x => moneyShort(x)) : (x => pct(x)));
+    tiles.forEach(([t, v, pv, sub, main, isMoney, isCount]) => {
+      const c = el('div', 'card fn-kpi' + (main ? ' main' : '') + (isCount ? ' cnt' : ''));
+      const b = el('b', 'num'); countUp(b, v, isMoney ? (x => moneyShort(x)) : isCount ? (x => nf.format(Math.round(x))) : (x => pct(x)));
       if (isMoney) b.append(el('small', null, ' ₽'));
       c.append(el('span', 'label', t), b);
       if (isFinite(pv) && prev) {
         const d = isMoney ? (pv ? v / pv - 1 : NaN) : v - pv;
+        if (isCount) { c.append(el('span', 'delta num ' + (d >= 0 ? 'up' : 'down'), (d >= 0 ? '+' : '−') + nf.format(Math.abs(d)) + ' к периоду «' + prevLabel + '»')); c.append(el('span', 'fn-kpi-sub', sub)); kp.append(c); return; }
         const toWhat = 'к периоду «' + prevLabel + '»';
         if (isFinite(d)) c.append(el('span', 'delta num ' + (d >= 0 ? 'up' : 'down'), isMoney ? signed(d) + ' ' + toWhat : (d >= 0 ? '+' : '−') + Math.abs(d * 100).toFixed(1).replace('.', ',') + ' п.п. ' + toWhat));
       }
