@@ -2119,7 +2119,7 @@ a { color: inherit; }
     }
     const single = PER.p === 'month';
     const keys = { from: ALL ? R.from : M.cur + '-01', to: ALL ? R.to : M.asof };
-    $('fn-sub').textContent = R.label + ', сравнение с периодом «' + prevLabel + '».';
+    $('fn-sub').textContent = R.label + ', сравнение с периодом «' + prevLabel + '».' + (ALL && ALL.botFrom && R.to >= ALL.botFrom ? ' Лиды и встречи - из бота, в моменте.' : ' Лиды и встречи - из таблицы.');
     if (seq !== fnSeq) return;
     const periodName = R.label;
     // KPI-плитки: три конверсии и кэш
