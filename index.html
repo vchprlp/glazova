@@ -998,6 +998,17 @@ a { color: inherit; }
 .fc-g span { color: var(--muted); }
 /* Воронка по менеджерам (16.11): группы колонок, приглушённые количества, плашки лучший/худший, полоска кэша */
 #ad-card { margin-bottom: 22px; }
+#q-card { margin-bottom: 22px; }
+.q-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 14px; }
+.q-kpis > div { padding: 12px 14px; border-radius: 12px; background: var(--track); display: flex; flex-direction: column; gap: 2px; }
+.q-kpis b { font-size: 22px; }
+.q-tbl td, .q-tbl th { white-space: nowrap; }
+.q-tbl td:not(:first-child), .q-tbl th:not(:first-child) { text-align: right; }
+.q-tbl tr.tot td { font-weight: 700; border-top: 1px solid var(--line-2); }
+.q-why { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 14px; }
+.q-why h3 { font-size: 13px; margin: 0 0 6px; }
+.q-why .qr { display: flex; justify-content: space-between; gap: 10px; padding: 5px 0; border-bottom: 1px dashed var(--line-2); font-size: 13px; }
+@media (max-width: 700px) { .q-kpis { grid-template-columns: 1fr 1fr; } .q-why { grid-template-columns: 1fr; } }
 .fn-tbl thead tr.grp th { padding-bottom: 4px; border-bottom: 0; font-size: 11px; font-weight: 600; text-transform: none; color: var(--muted); text-align: center; }
 .fn-tbl thead tr.grp th[colspan] { position: relative; }
 .fn-tbl thead tr.grp th[colspan]::after { content: ""; position: absolute; left: 10px; right: 10px; bottom: 0; height: 1px; background: var(--line-2); }
@@ -1308,6 +1319,12 @@ a { color: inherit; }
         <div class="card" data-anim style="--i:4"><div class="card-h"><h2>План</h2><span class="small" id="fn-plan-sub"></span></div><div class="storage" id="fn-plan"></div></div>
       </div>
       <div class="card" data-anim style="--i:5" id="ad-card" hidden><div class="card-h"><h2>Стоимость лида</h2><span class="small" id="ad-sub"></span></div><div class="ad-kpis" id="ad-kpis"></div><p class="fn-note" id="ad-note"></p></div>
+      <div class="card" data-anim style="--i:5" id="q-card" hidden><div class="card-h"><h2>Целевые лиды</h2><span class="small" id="q-sub"></span></div>
+        <div class="q-kpis" id="q-kpis"></div>
+        <div class="tbl-wrap"><table class="tbl q-tbl" id="q-tbl"><thead><tr><th>Источник</th><th>Лиды</th><th>✅ Целевые</th><th>🚫 Нецелевые</th><th>⛔ Невалидные</th><th title="Лид закрыт, а менеджер тип не отметил">Без отметки</th><th>В работе</th><th title="Целевые из тех, кого отметили">Доля целевых</th></tr></thead><tbody></tbody></table></div>
+        <div class="q-why" id="q-why"></div>
+        <p class="fn-note" id="q-note"></p>
+      </div>
       <div class="card" data-anim style="--i:5"><div class="card-h"><h2>Воронка по менеджерам</h2><span class="small" id="fn-tbl-sub"></span></div>
         <div class="tbl-wrap fn-tbl-wrap"><table class="tbl fn-tbl" id="fn-tbl"><thead><tr class="grp"><th></th><th colspan="4">Путь клиента, человек</th><th colspan="2">Конверсия</th><th colspan="2">Деньги</th><th>Скорость</th></tr><tr><th>Менеджер</th><th>Лиды</th><th>Записались</th><th>Пришли</th><th>Оплатили</th><th>Лид → пришёл</th><th>Пришёл → оплата</th><th>Чистый кэш</th><th>Средний чек</th><th title="От создания сделки в amoCRM (первое сообщение) до оплаты, медиана">Цикл сделки</th></tr></thead><tbody></tbody></table></div>
         <div class="fn-cards" id="fn-cards"></div>
@@ -2117,6 +2134,7 @@ a { color: inherit; }
     $('fn-tbl-sub').textContent = periodName;
     drawFnTable(cur, keys);
     drawAdCost();
+    drawQuality(R);
     if (!COH && (ROLE === 'admin' || ROLE === 'boss')) loadCohort().then(() => { if (current === 'funnel' && seq === fnSeq) drawFnTable(cur, keys); });
   }
   /* Стоимость лида. ТЕСТ: бюджет вписан руками со скрина рекламного кабинета (ТГ-бот, Instagram, метка inst2) на 16.11.
@@ -2148,6 +2166,52 @@ a { color: inherit; }
      ['Цена встречи', usd(A.usd / held), nf.format(held) + ' ' + plural(held, 'пришёл', 'пришли', 'пришли') + ' на встречу']
     ].forEach(([t, v, sub, main]) => { const c = el('div', main ? 'main' : ''); c.append(el('span', 'label', t), el('b', 'num', v), el('span', 'fn-kpi-sub', sub)); box.append(c); });
     $('ad-note').textContent = hasAge ? 'Не целевые: ' + nf.format(zin) + ' в ЗИН и ' + nf.format(old) + ' по возрасту (старше 45, или старше 40 без опыта в IT). Возраст и опыт бот берёт из первых сообщений клиента, примерно; кто возраст не написал, считается целевым. Бюджет пока вписан вручную со скрина на ' + d(A.to) + ', период выше на него не влияет.' : '';
+  }
+  /* Целевые лиды: тип, который менеджер отметил в боте после встречи или при отказе. Оплатил = целевой.
+     Доля целевых считается от отмеченных: «без отметки» и «в работе» в неё не входят. */
+  const Q_CACHE = {};
+  async function drawQuality(R) {
+    const card = $('q-card'); if (!card) return;
+    if (ROLE === 'manager' || !(META && META.live)) { card.hidden = true; return; }
+    card.hidden = false;
+    const key = R.from + '_' + R.to;
+    $('q-sub').textContent = R.label;
+    if (!Q_CACHE[key]) {
+      $('q-kpis').replaceChildren(el('span', 'small', 'Считаю…'));
+      Q_CACHE[key] = fetch(SB_URL + '/functions/v1/dash-data?view=quality&from=' + R.from + '&to=' + R.to, { headers: await authHeaders(), cache: 'no-store' }).then(r => r.json()).catch(() => ({ rows: [] }));
+    }
+    const j = await Q_CACHE[key];
+    if (current !== 'funnel' || $('q-sub').textContent !== R.label) return;
+    const rows = j.rows || [];
+    const tb = $('q-tbl').querySelector('tbody'); tb.replaceChildren();
+    if (j.error) { $('q-kpis').replaceChildren(el('span', 'small', 'Нужно добавить колонки в базу (SQL) - пока данных нет')); $('q-why').replaceChildren(); $('q-note').textContent = ''; return; }
+    const z = () => ({ n: 0, t: 0, nt: 0, inv: 0, un: 0, w: 0 });
+    const add = (o, r) => { o.n++; if (r.q === 'target') o.t++; else if (r.q === 'nontarget') o.nt++; else if (r.q === 'invalid') o.inv++; else if (r.ph === 'closed') o.un++; else o.w++; };
+    const by = new Map(), tot = z();
+    rows.forEach(r => { if (!by.has(r.ch)) by.set(r.ch, z()); add(by.get(r.ch), r); add(tot, r); });
+    const share = o => { const m = o.t + o.nt + o.inv; return m ? o.t / m : NaN; };
+    const box = $('q-kpis'); box.replaceChildren();
+    [['Целевые', tot.t, isFinite(share(tot)) ? pct(share(tot), 0) + ' от отмеченных' : 'пока никого не отметили'],
+     ['Нецелевые', tot.nt, 'не наша аудитория'],
+     ['Невалидные', tot.inv, 'боты, дубли, реклама, конкуренты'],
+     ['Без отметки', tot.un, 'закрыты, а тип не отметили']
+    ].forEach(([t, v, sub]) => { const c = el('div'); c.append(el('span', 'label', t), el('b', 'num', nf.format(v)), el('span', 'fn-kpi-sub', sub)); box.append(c); });
+    const line = (name, o, cls) => {
+      const tr = el('tr', cls || null);
+      [name, o.n, o.t, o.nt, o.inv, o.un, o.w].forEach((v, i) => tr.append(el('td', i ? 'num' : null, i ? nf.format(v) : v)));
+      tr.append(el('td', 'num', isFinite(share(o)) ? pct(share(o), 0) : '–')); tb.append(tr);
+    };
+    [...by.entries()].sort((a, b) => b[1].n - a[1].n).forEach(([k, o]) => line(k, o));
+    if (by.size > 1) line('Итого', tot, 'tot');
+    const why = $('q-why'); why.replaceChildren();
+    [['nontarget', '🚫 Почему нецелевые'], ['invalid', '⛔ Почему невалидные']].forEach(([q, h]) => {
+      const cnt = new Map(); rows.filter(r => r.q === q).forEach(r => { const k = r.r || 'Без причины'; cnt.set(k, (cnt.get(k) || 0) + 1); });
+      const col = el('div'); col.append(el('h3', null, h));
+      if (!cnt.size) col.append(el('span', 'small', 'пока нет'));
+      [...cnt.entries()].sort((a, b) => b[1] - a[1]).forEach(([k, v]) => { const d = el('div', 'qr'); d.append(el('span', null, k), el('b', 'num', nf.format(v))); col.append(d); });
+      why.append(col);
+    });
+    $('q-note').textContent = 'Тип лида менеджер отмечает кнопкой в боте после встречи и при отказе. Кто оплатил, считается целевым сам. «В работе» - ещё не закрыты и не отмечены. Отметки начали собирать с 20.11, раньше лиды будут «без отметки».';
   }
   /* Путь клиента: сколько дошло на каждом шаге и сколько людей потеряли между шагами */
   function drawFnPath(cur, prev, prevLabel) {
