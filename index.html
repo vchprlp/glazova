@@ -1715,6 +1715,21 @@ a { color: inherit; }
       const g = book.z ? null : book.sheets[name]; if (!g || !g.length || txt(g[0][1]).trim() !== 'Лидов взято') return;
       g.slice(1).forEach(r => { const d = iso(r[0]); if (!d) return; const l = num(r[1]), b = num(r[3]), h = num(r[4]); if (l || b || h) out.mdays.push({ m: SHORT_MGR[mm[1]] || mm[1], date: d, leads: l, booked: b, held: h }); });
     });
+    // с начала текущего месяца лиды, записи и встречи берём прямо из бота (в моменте), а не из таблицы,
+    // которую менеджеры заполняют вечером. Оплаты и деньги остаются из таблицы «Оплаты».
+    const BD = book.botDays;
+    if (BD && BD.from && Array.isArray(BD.rows) && BD.rows.length) {
+      const roster = [...new Set(Object.values(SHORT_MGR).concat(out.mdays.map(r => r.m)))];
+      const nameOf = n => { if (SHORT_MGR[n]) return SHORT_MGR[n]; if (roster.includes(n)) return n; const f = String(n).split(' ')[0].replace('Артем', 'Артём').replace('Максим', 'Макс'); return roster.find(r => r.split(' ')[0] === f || SHORT_MGR[f] === r) || n; };
+      out.days = out.days.filter(r => r.date < BD.from); out.mdays = out.mdays.filter(r => r.date < BD.from);
+      const tot = {};
+      BD.rows.forEach(r => {
+        out.mdays.push({ m: nameOf(r.m), date: r.d, leads: r.l, booked: r.b, held: r.h });
+        const t = tot[r.d] = tot[r.d] || { month: r.d.slice(0, 7), date: r.d, leads: 0, booked: 0, held: 0 }; t.leads += r.l; t.booked += r.b; t.held += r.h;
+      });
+      out.days.push(...Object.values(tot).sort((a, b) => a.date.localeCompare(b.date)));
+      out.botFrom = BD.from;
+    }
     return out;
   }
   /* Границы периода и период для сравнения */
@@ -3318,7 +3333,7 @@ a { color: inherit; }
       const j = await r.json();
       if (j.me) { renderMe(j.me); throw new MeMode(); }
       if (j.role === 'marketing') { marketingMode(); throw new MeMode(); }
-      ROLE = j.role; return { sheets: j.sheets, synced_at: j.synced_at, hang: j.hang ?? null, pipe: j.pipe ?? null, mgrDays: j.mgr_days || null };
+      ROLE = j.role; return { sheets: j.sheets, synced_at: j.synced_at, hang: j.hang ?? null, pipe: j.pipe ?? null, mgrDays: j.mgr_days || null, botDays: j.bot_days || null };
     }
     const { data: { session } } = await SB.auth.getSession();
     if (!session) { showLogin(); throw new Error('нужно войти'); }
@@ -3328,7 +3343,7 @@ a { color: inherit; }
     const j = await r.json();
     if (j.me) { renderMe(j.me); throw new MeMode(); }
     if (j.role === 'marketing') { marketingMode(); throw new MeMode(); }
-    ROLE = j.role; return { sheets: j.sheets, synced_at: j.synced_at, hang: j.hang ?? null, pipe: j.pipe ?? null, mgrDays: j.mgr_days || null };
+    ROLE = j.role; return { sheets: j.sheets, synced_at: j.synced_at, hang: j.hang ?? null, pipe: j.pipe ?? null, mgrDays: j.mgr_days || null, botDays: j.bot_days || null };
   }
   async function loadBookXlsx() {
     const r = await fetch('https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/export?format=xlsx', { cache: 'no-store' });
