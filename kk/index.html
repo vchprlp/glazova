@@ -197,7 +197,7 @@ body.chat #side{display:none} body.chat #main{display:flex}
     if (!L.length) { $('list').innerHTML = '<div class="empty">' + (S.q ? 'Никого не нашёл' : S.flt === 'wait' ? 'Все отвечены 👌' : 'Чатов пока нет') + '</div>'; return; }
     $('list').innerHTML = L.map((c) =>
       '<div class="row' + (S.cur === c.id ? ' sel' : '') + '" data-id="' + c.id + '">' + ava(c) +
-      '<div class="mid"><div class="l1"><span class="nm">' + esc(c.name) + '</span><span class="tm">' + shortTime(c.at) + '</span></div>' +
+      '<div class="mid"><div class="l1"><span class="nm">' + (c.stage === 'Оффер озвучен' ? '💰 ' : '') + esc(c.name) + '</span><span class="tm">' + shortTime(c.at) + '</span></div>' +
       '<div class="l2"><span class="sn">' + (c.mine ? '<i>Мы: </i>' : '') + esc(c.text || 'нет сообщений') + '</span>' +
       (!S.mgr && c.mgr ? '<span class="tag">' + esc(c.mgr.split(' ')[0]) + '</span>' : '') +
       (c.wait ? '<span class="dot" title="ждёт ответа">' + waitFor(c.at) + '</span>' : '') + '</div></div></div>').join('');
