@@ -999,6 +999,22 @@ a { color: inherit; }
 /* Воронка по менеджерам (16.11): группы колонок, приглушённые количества, плашки лучший/худший, полоска кэша */
 #ad-card { margin-bottom: 22px; }
 #q-card { margin-bottom: 22px; }
+.cf-card .card-h { flex-wrap: wrap; gap: 10px; }
+.cf-sw { display: inline-flex; gap: 4px; padding: 3px; border-radius: 10px; background: var(--track); }
+.cf-b { border: 0; background: transparent; color: var(--muted); font: inherit; font-size: 13px; padding: 6px 12px; border-radius: 8px; cursor: pointer; }
+.cf-b.on { background: var(--card); color: var(--ink); font-weight: 600; }
+.cf-tbl td, .cf-tbl th { white-space: nowrap; }
+.cf-tbl td.num, .cf-tbl th.num { text-align: right; }
+.cf-tbl td.num b { font-weight: 600; }
+.cf-tbl .cf-p { margin-left: 6px; font-size: 11px; color: var(--muted); }
+.cf-tbl td, .cf-tbl th { padding-top: 7px; padding-bottom: 7px; }
+.cf-tbl .cf-st, .cf-tbl th:nth-child(2), .cf-tbl th:first-child { text-align: left !important; }
+.cf-tbl tr.cf-g td { border-top: 2px solid var(--line-2); }
+.cf-tbl tr.cf-g.first td { border-top: 0; }
+.cf-tbl .cf-coh { vertical-align: top; min-width: 120px; }
+.cf-tbl .cf-coh b { display: block; }
+.cf-tbl .cf-st { color: var(--muted); }
+.cf-tbl tr.paid td.num b { color: var(--good, inherit); }
 .q-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 14px; }
 .q-kpis > div { padding: 12px 14px; border-radius: 12px; background: var(--track); display: flex; flex-direction: column; gap: 2px; }
 .q-kpis b { font-size: 22px; }
@@ -2328,6 +2344,59 @@ a { color: inherit; }
   }
   /* ---------- Когорты ---------- */
   const CO_BUCKETS = [[0, 0, 'в тот же день'], [1, 3, '1–3 дня'], [4, 7, '4–7 дней'], [8, 14, '8–14 дней'], [15, 30, '15–30 дней'], [31, 60, '31–60 дней'], [61, 90, '61–90 дней'], [91, 1e9, 'больше 90 дней']];
+  /* Воронка когорт: лиды одной недели (или месяца) и что с ними стало к концу каждой следующей недели/месяца.
+     Данные из бота (с конца октября). Цифры накопительные, % - от заявок когорты. */
+  let CF = null, CF_MODE = 'w';
+  async function drawCoFunnel(body) {
+    const card = el('div', 'card co-card cf-card'); card.dataset.anim = ''; card.style.setProperty('--i', '2');
+    const h = el('div', 'card-h'); h.append(el('h2', null, 'Воронка когорт'));
+    const sw = el('div', 'cf-sw');
+    [['w', 'По неделям'], ['m', 'По месяцам']].forEach(([k, t]) => { const b = el('button', 'cf-b' + (CF_MODE === k ? ' on' : ''), t); b.type = 'button'; b.onclick = () => { CF_MODE = k; render(); sw.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b)); }; sw.append(b); });
+    h.append(sw); card.append(h);
+    card.append(el('p', 'co-how', 'Когорта - все, кто написал за эту неделю (месяц). Дальше видно, сколько из них к концу каждого периода записались на встречу, пришли, оплатили и сколько закрыто. Цифры накопительные, процент - от заявок когорты.'));
+    const box = el('div', 'cf-box'); card.append(box); body.append(card);
+    if (!CF) {
+      box.replaceChildren(el('p', 'label', 'Загружаю…'));
+      try { CF = await fetch(SB_URL + '/functions/v1/dash-data?view=cofunnel', { headers: await authHeaders(), cache: 'no-store' }).then(r => r.json()); } catch (e) { CF = { rows: [] }; }
+    }
+    const DAY = 864e5, iso = t => new Date(t).toISOString().slice(0, 10), P = d => Date.parse(d + 'T00:00:00Z');
+    const today = mskToday();
+    function render() {
+      const rows = (CF && CF.rows || []).filter(r => r[0] && r[1]);
+      if (!rows.length) { box.replaceChildren(el('p', 'label', CF && CF.error ? 'Не получилось загрузить данные.' : 'Пока нет данных из бота.')); return; }
+      const start = d => { const t = P(d); if (CF_MODE === 'm') return d.slice(0, 8) + '01'; const wd = (new Date(t).getUTCDay() + 6) % 7; return iso(t - wd * DAY); };
+      const endOf = (s, k) => { if (CF_MODE === 'm') { const y = +s.slice(0, 4), m = +s.slice(5, 7) - 1 + k; return iso(Date.UTC(y, m + 1, 0)); } return iso(P(s) + (7 * (k + 1) - 1) * DAY); };
+      const label = s => CF_MODE === 'm' ? ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'][+s.slice(5, 7) - 1] : s.slice(8, 10) + '.' + s.slice(5, 7) + ' - ' + endOf(s, 0).slice(8, 10) + '.' + endOf(s, 0).slice(5, 7);
+      const groups = new Map(); rows.forEach(r => { const k = start(r[0]); if (!groups.has(k)) groups.set(k, []); groups.get(k).push(r); });
+      const keys = [...groups.keys()].sort().reverse().slice(0, CF_MODE === 'm' ? 6 : 8);
+      let maxK = 0; keys.forEach(k => { let n = 0; while (endOf(k, n) < today) n++; maxK = Math.max(maxK, n); });
+      const cols = maxK + 1, unit = CF_MODE === 'm' ? 'мес' : 'нед';
+      const t = el('table', 'tbl cf-tbl'); const th = el('thead'); const hr = el('tr');
+      hr.append(el('th', null, 'Когорта'), el('th', null, 'Этап'));
+      for (let i = 0; i < cols; i++) hr.append(el('th', 'num', (i + 1) + '-я ' + unit));
+      th.append(hr); t.append(th); const tb = el('tbody'); t.append(tb);
+      const ST = [['Записались', 2], ['Пришли', 3], ['Оплатили', 4], ['Закрыто', 5], ['В работе', -1]];
+      keys.forEach((k, gi) => {
+        const g = groups.get(k), n = g.length; let alive = 0; while (endOf(k, alive) < today) alive++;
+        const tr0 = el('tr', 'cf-g' + (gi ? '' : ' first')); const c0 = el('td', 'cf-coh'); c0.rowSpan = ST.length + 1; c0.append(el('b', null, label(k)), el('span', 'small', nf.format(n) + ' ' + plural(n, 'заявка', 'заявки', 'заявок')));
+        tr0.append(c0, el('td', 'cf-st', 'Заявки')); for (let i = 0; i < cols; i++) tr0.append(el('td', 'num', i <= alive ? nf.format(n) : '')); tb.append(tr0);
+        ST.forEach(([name, ix]) => {
+          const tr = el('tr', 'cf-r' + (name === 'Оплатили' ? ' paid' : ''));
+          tr.append(el('td', 'cf-st', name));
+          for (let i = 0; i < cols; i++) {
+            if (i > alive) { tr.append(el('td')); continue; }
+            const e = endOf(k, i);
+            const v = ix < 0 ? g.filter(r => !(r[4] && r[4] <= e) && !(r[5] && r[5] <= e)).length : g.filter(r => r[ix] && r[ix] <= e).length;
+            const td = el('td', 'num'); td.append(el('b', null, nf.format(v)), el('span', 'cf-p', pct(n ? v / n : 0, 1))); tr.append(td);
+          }
+          tb.append(tr);
+        });
+      });
+      const w = el('div', 'tbl-wrap'); w.append(t);
+      box.replaceChildren(w, el('p', 'fn-note', 'Последняя колонка у каждой когорты - текущий, ещё не закончившийся период. Данные бота начинаются с конца октября, поэтому старых когорт здесь нет. «Пришли» у Артёма занижено: он не отмечает встречи в боте.'));
+    }
+    render();
+  }
   async function drawCohort() {
     const body = $('co-body');
     if (!COH) {
@@ -2347,6 +2416,7 @@ a { color: inherit; }
     const lead = el('p', 'co-lead'); lead.dataset.anim = ''; lead.style.setProperty('--i', '1');
     lead.append(document.createTextNode('Половина покупок случается в первые '), el('b', 'num', dtxt(q(.5))), document.createTextNode(' после первого сообщения, 80% в первые '), el('b', 'num', dtxt(q(.8))), document.createTextNode(', 90% в первые '), el('b', 'num', dtxt(q(.9))), document.createTextNode('. Позже месяца приходит '), el('b', 'num', pct(late30, 0)), document.createTextNode(' оплат: столько ещё можно добрать со старой аудитории.'));
     body.append(lead);
+    drawCoFunnel(body);
 
     // 1. Через сколько дней покупают: доля в сроке + сколько набралось к этому сроку
     const c1 = el('div', 'card co-card'); c1.dataset.anim = ''; c1.style.setProperty('--i', '2');
