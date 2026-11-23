@@ -1721,11 +1721,14 @@ a { color: inherit; }
     if (BD && BD.from && Array.isArray(BD.rows) && BD.rows.length) {
       const roster = [...new Set(Object.values(SHORT_MGR).concat(out.mdays.map(r => r.m)))];
       const nameOf = n => { if (SHORT_MGR[n]) return SHORT_MGR[n]; if (roster.includes(n)) return n; const f = String(n).split(' ')[0].replace('Артем', 'Артём').replace('Максим', 'Макс'); return roster.find(r => r.split(' ')[0] === f || SHORT_MGR[f] === r) || n; };
-      out.days = out.days.filter(r => r.date < BD.from); out.mdays = out.mdays.filter(r => r.date < BD.from);
+      // кто не работает через бота (Артём), у того цифры остаются из его листа в таблице, иначе у него 0 встреч и конверсия >100%
+      const NO_BOT = ['Артём Н'];
+      out.days = out.days.filter(r => r.date < BD.from);
+      out.mdays = out.mdays.filter(r => r.date < BD.from || NO_BOT.includes(r.m));
+      BD.rows.forEach(r => { const m = nameOf(r.m); if (!NO_BOT.includes(m)) out.mdays.push({ m, date: r.d, leads: r.l, booked: r.b, held: r.h }); });
       const tot = {};
-      BD.rows.forEach(r => {
-        out.mdays.push({ m: nameOf(r.m), date: r.d, leads: r.l, booked: r.b, held: r.h });
-        const t = tot[r.d] = tot[r.d] || { month: r.d.slice(0, 7), date: r.d, leads: 0, booked: 0, held: 0 }; t.leads += r.l; t.booked += r.b; t.held += r.h;
+      out.mdays.filter(r => r.date >= BD.from).forEach(r => {
+        const t = tot[r.date] = tot[r.date] || { month: r.date.slice(0, 7), date: r.date, leads: 0, booked: 0, held: 0 }; t.leads += r.leads || 0; t.booked += r.booked || 0; t.held += r.held || 0;
       });
       out.days.push(...Object.values(tot).sort((a, b) => a.date.localeCompare(b.date)));
       out.botFrom = BD.from;
