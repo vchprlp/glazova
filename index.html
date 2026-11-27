@@ -178,6 +178,8 @@ a { color: inherit; }
 .cv-gap.worst .cv-pill { box-shadow: 0 0 0 2px var(--bad); }
 .cv-gap em { font-style: normal; font-size: 11.5px; font-weight: 600; color: var(--muted); white-space: nowrap; }
 .cv-gap.good em { color: var(--good); } .cv-gap.bad em { color: var(--bad); }
+.fn-nc { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 8px; }
+.nc-note { margin: 0; font-size: 12.5px; color: var(--muted); line-height: 1.4; flex: 1 1 220px; }
 .path-note { margin: 18px 0 0; font-size: 13px; color: var(--muted); line-height: 1.45; }
 .path-note b { color: var(--bad); font-weight: 600; }
 .cv-base { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line); display: grid; grid-template-columns: auto repeat(3, minmax(0, 1fr)); gap: 12px 28px; align-items: center; }
@@ -2139,6 +2141,7 @@ a { color: inherit; }
     const single = PER.p === 'month';
     const keys = { from: ALL ? R.from : M.cur + '-01', to: ALL ? R.to : M.asof };
     $('fn-sub').textContent = R.label + ', сравнение с периодом «' + prevLabel + '».' + (ALL && ALL.botFrom && R.to >= ALL.botFrom ? ' Лиды и встречи - из бота, в моменте.' : ' Лиды и встречи - из таблицы.');
+    { const old = $('fn-nc'); if (old) old.remove(); const r = ncRow(R.from, R.to); r.id = 'fn-nc'; $('fn-sub').after(r); }
     if (seq !== fnSeq) return;
     const periodName = R.label;
     // KPI-плитки: три конверсии и кэш
@@ -2679,7 +2682,7 @@ a { color: inherit; }
   function drawPath() {
     const c = $('path'); c.replaceChildren();
     const h = el('div', 'card-h'); h.append(el('h2', null, 'Конверсии'), el('span', 'small', 'с 1 по ' + dlabel(M.asof) + ', сравнение с теми же днями ' + W.P.gen));
-    const go = el('button', 'icon-btn'); go.type = 'button'; go.dataset.go = 'funnel'; go.setAttribute('aria-label', 'Открыть воронку'); go.innerHTML = ICO_DOWN; h.append(go); c.append(h);
+    const go = el('button', 'icon-btn'); go.type = 'button'; go.dataset.go = 'funnel'; go.setAttribute('aria-label', 'Открыть воронку'); go.innerHTML = ICO_DOWN; h.append(go); const ncR = ncRow(M.cur + '-01', M.asof); ncR.style.margin = '-4px 0 14px'; c.append(h, ncR);
 
     // главный итог воронки одной фразой
     const per100 = M.leads ? M.paid / M.leads * 100 : 0, per100S = M.leadsS ? M.paidS / M.leadsS * 100 : 0;
@@ -3606,7 +3609,61 @@ a { color: inherit; }
       el('span', null, lastError ? 'Свежие цифры загрузить не получилось, показаны прошлые. Нажми, чтобы попробовать ещё раз.' : 'Цифры берутся из таблицы при каждом открытии. Нажми, чтобы обновить прямо сейчас.'));
     b.setAttribute('aria-label', 'Обновить данные из таблицы. Обновлено ' + ago);
   }
-  function applyData(data) {
+  /* ---------- «Без НЦ»: из лидов и назначенных встреч вычитаем нецелевых, которых считает бот ----------
+     НЦ = не ЦА (в т.ч. неквал), удалили переписку, узнали цену и не дошли до встречи. Встречи и оплаты не трогаем. */
+  let NC = null, NCMODE = 'clean', LASTDATA = null, ncLoading = false;
+  try { if (localStorage.getItem('nc') === 'all') NCMODE = 'all'; } catch (e) {}
+  function ncName(n, roster) {
+    if (SHORT_MGR[n]) return SHORT_MGR[n]; if (roster.includes(n)) return n;
+    const f = String(n).split(' ')[0].replace('Артем', 'Артём').replace('Максим', 'Макс');
+    return roster.find(r => r.split(' ')[0] === f || SHORT_MGR[f] === r) || n;
+  }
+  function ncApply(data) {
+    if (NCMODE !== 'clean' || !NC || !NC.rows) return data;
+    const all = data.all ? { ...data.all, days: data.all.days.map(r => ({ ...r })), mdays: data.all.mdays.map(r => ({ ...r })) } : null;
+    const days = data.days.map(r => ({ ...r }));
+    const roster = all ? [...new Set(all.mdays.map(r => r.m))] : [];
+    const minus = (r, x) => { if (!r) return; r.leads = Math.max(0, (r.leads || 0) - x.n); r.booked = Math.max(0, (r.booked || 0) - x.b); };
+    NC.rows.forEach(x => {
+      minus(days.find(r => r.date === x.d), x);
+      if (all) { const m = ncName(x.m, roster); minus(all.days.find(r => r.date === x.d), x); minus(all.mdays.find(r => r.date === x.d && r.m === m), x); }
+    });
+    return { ...data, days, all };
+  }
+  async function ncLoad() {
+    if (ncLoading || !LASTDATA || !ROLE || ROLE === 'manager' || ROLE === 'marketing' || !META) return;
+    const view = META.view, ps = monthStart(addDays(view + '-01', -1));
+    const today = new Date(Date.now() + 3 * 36e5).toISOString().slice(0, 10), end = monthEndOf(view + '-01');
+    const key = ps + '|' + view;
+    if (NC && NC._key === key) return;
+    ncLoading = true;
+    try {
+      const r = await fetch(SB_URL + '/functions/v1/dash-data?view=nc&from=' + ps + '&to=' + (end < today ? end : today), { headers: await authHeaders(), cache: 'no-store' });
+      if (r.ok) { const j = await r.json(); if (j && j.rows) { NC = { ...j, _key: key }; if (LASTDATA) applyData(LASTDATA, true); } }
+    } catch (e) {} finally { ncLoading = false; }
+  }
+  function ncSwitch() {
+    const s = el('div', 'seg'); s.setAttribute('role', 'group'); s.setAttribute('aria-label', 'Какие лиды считать');
+    [['clean', 'Без НЦ'], ['all', 'Все лиды']].forEach(([k, t]) => {
+      const b = el('button', null, t); b.type = 'button'; b.setAttribute('aria-pressed', String(NCMODE === k));
+      b.title = k === 'clean' ? 'Без нецелевых: не ЦА, удалили переписку, узнали цену и не дошли до встречи' : 'Все лиды, как в таблице и в боте';
+      b.addEventListener('click', () => { if (NCMODE === k) return; NCMODE = k; try { localStorage.setItem('nc', k); } catch (e) {} if (LASTDATA) applyData(LASTDATA, true); });
+      s.append(b);
+    });
+    return s;
+  }
+  function ncNote(a, b) {
+    if (NCMODE !== 'clean') return el('p', 'nc-note', 'Все лиды, без исключений.');
+    if (!NC) return el('p', 'nc-note', 'Считаю нецелевых лидов…');
+    const t = { n: 0, notca: 0, del: 0, price: 0 };
+    NC.rows.forEach(x => { if (x.d >= a && x.d <= b) { t.n += x.n; t.notca += x.notca; t.del += x.del; t.price += x.price; } });
+    return el('p', 'nc-note', 'Без НЦ: не считаем ' + t.n + ' ' + plural(t.n, 'лид', 'лида', 'лидов') + ' - не ЦА ' + t.notca + ', удалили переписку ' + t.del + ', узнали цену и не дошли до встречи ' + t.price + '. Проведённые встречи и оплаты не меняются.');
+  }
+  function ncRow(a, b) { const r = el('div', 'fn-nc'); r.append(ncSwitch(), ncNote(a, b)); return r; }
+
+  function applyData(data, fromNc) {
+    LASTDATA = data;
+    data = ncApply(data);
     RAW = data.payments; META = data.meta; ALL = data.all || null; OBJ = data.objections || []; HANG = data.hang ?? null; PIPE = data.pipe ?? null;
     document.querySelectorAll('a[href*="docs.google.com/spreadsheets"]').forEach(a => { a.href = TABLE_URL + (/^\d+$/.test(META.pay_gid || '') ? '#gid=' + META.pay_gid : ''); });
     // таблицу с зарплатами открывает только Слава
@@ -3614,15 +3671,17 @@ a { color: inherit; }
     const keepPay = payMonth, keepObj = objMonth;
     M = compute(data.payments, data.days, data.managers, data.plans);
     payMonth = keepPay === M.prev ? M.prev : M.cur; objMonth = keepObj === M.prev ? M.prev : M.cur;
-    if (firstDraw) { firstDraw = false; weekStart = mondayOf(M.asof); selDay = M.asof; go(current); }
+    if (firstDraw && !fromNc) { firstDraw = false; weekStart = mondayOf(M.asof); selDay = M.asof; go(current); }
     else { /* тихая перерисовка без прыжка наверх */
       grown = true; animateNums = false;
       if (current === 'overview') drawAll(); if (current === 'managers') drawManagers(); if (current === 'payments') drawPayments(); if (current === 'funnel') drawFunnel(); if (current === 'objections') drawObjections();
     }
     drawSync(); drawMonthSwitch();
+    if (!fromNc) ncLoad();
   }
   async function refresh(manual) {
     if (loading) return; loading = true; lastError = null; drawSync();
+    if (manual) NC = null;
     try {
       const data = await buildLive();
       if (data.meta.live) try { localStorage.setItem(CACHE_KEY, JSON.stringify(data)); } catch (e) {}
